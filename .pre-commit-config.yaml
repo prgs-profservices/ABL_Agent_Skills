@@ -1,0 +1,26 @@
+minimum_pre_commit_version: '4.5.1'
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: validate-baseline
+        name: Validate baseline and skills
+        entry: python scripts/validate_baseline.py
+        language: python
+        additional_dependencies: [PyYAML==6.0.3]
+        pass_filenames: false
+        always_run: true
+      - id: markdown-lint
+        name: Lint Markdown
+        entry: pymarkdown scan
+        language: python
+        additional_dependencies: [pymarkdownlnt==0.9.33]
+        types: [markdown]
