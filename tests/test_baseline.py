@@ -55,7 +55,9 @@ class BaselineTests(unittest.TestCase):
         self.assertIn("deletion", rules)
         self.assertIn("non_fast_forward", rules)
         checks = rules["required_status_checks"]["required_status_checks"]
-        self.assertEqual(len(checks), 4)
+        self.assertEqual(len(checks), 6)
+        self.assertIn({"context": "Cisco skill static scan", "integration_id": 15368}, checks)
+        self.assertIn({"context": "Cisco skill semantic scan", "integration_id": 15368}, checks)
         self.assertIn({"context": "Polaris policy", "integration_id": 100}, checks)
         self.assertIn({"context": "Black Duck policy", "integration_id": 200}, checks)
 

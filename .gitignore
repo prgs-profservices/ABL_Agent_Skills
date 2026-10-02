@@ -1,4 +1,5 @@
-.venv/
+.venv*/
+.skill-scanner-reports/
 __pycache__/
 *.py[cod]
 .vscode/

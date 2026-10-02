@@ -12,6 +12,8 @@ def build_ruleset(polaris_check, polaris_app_id, blackduck_check, blackduck_app_
     checks = [
         {"context": "Content validation", "integration_id": 15368},
         {"context": "TruffleHog secret scan", "integration_id": 15368},
+        {"context": "Cisco skill static scan", "integration_id": 15368},
+        {"context": "Cisco skill semantic scan", "integration_id": 15368},
         {"context": polaris_check, "integration_id": polaris_app_id},
         {"context": blackduck_check, "integration_id": blackduck_app_id},
     ]

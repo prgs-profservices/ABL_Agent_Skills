@@ -24,3 +24,11 @@ repos:
         language: python
         additional_dependencies: [pymarkdownlnt==0.9.33]
         types: [markdown]
+      - id: cisco-skill-static
+        name: Cisco AI skill static scan
+        entry: python scripts/scan_skills.py --mode static
+        language: python
+        language_version: python3.13
+        additional_dependencies: [cisco-ai-skill-scanner==2.1.0]
+        pass_filenames: false
+        always_run: true

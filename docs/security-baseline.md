@@ -7,6 +7,86 @@ GitHub enforcement until it is committed, reviewed, and activated.
 The full organization policy is still awaiting an approved Confluence export.
 This baseline is not a certification of compliance.
 
+## Cisco AI Skill Scanning
+
+Cisco Skill Scanner is required by the supplied skill-security policy for
+development, PR review, and pre-publication. Version `2.1.0` is pinned in
+`requirements-skill-scanner.txt` and the local pre-commit hook. CI uses Python
+3.13 to meet the organization's prerequisite. The scanner's published package
+supports older Python too, but that does not override the organization policy.
+
+The `cisco-skill-static` hook runs on every commit. A separate Linux workflow
+runs static analysis, then a Nuclia-backed semantic check on PRs, `main` pushes,
+merge groups, and manual dispatch. Content CI skips the duplicate static hook
+because the dedicated Cisco job provides that check. Required check names are
+`Cisco skill static scan` and `Cisco skill semantic scan`; both are included in
+the proposed main ruleset. Live enforcement still needs administrator activation.
+
+The wrapper discovers every Git-visible `SKILL.md`, snapshots its directory's
+Git-visible helper files, and does not include ignored `.env` files, local
+settings, or symlinks. This covers tracked and eligible untracked skills locally;
+CI scans the checked-out commit. Skills installed elsewhere or downloaded at
+runtime need a separate review before consumption.
+
+Static mode does not request an LLM. Semantic mode enables LLM, behavioral, and
+meta analysis. Any retained finding, including informational/medium findings,
+blocks until human validation and remediation. Analyzer failures, missing
+analyzer evidence, malformed results, and scanner failures also block. This
+conservative gate is not a substitute for manual triage and may need an
+organization-approved false-positive policy. No blanket ignore list is added.
+
+### Nuclia Activation
+
+1. Contact your BU management/Product Security for Nuclia onboarding and an
+   approved NUA key in `aws-us-east-2-1`. Do not send the key through chat.
+2. In repository **Settings > Environments**, create `skill-scanner-nuclia`.
+   Configure required reviewers, prevent self-review, restrict deployment refs,
+   and disallow protection bypass where supported before sharing credentials.
+   Merely naming the environment in YAML does not enable approval protections.
+3. Add environment secret `SKILL_SCANNER_LLM_API_KEY` directly through GitHub.
+   Confirm that sending reviewed skill content to this gateway is authorized.
+4. Optionally set repository variable `SKILL_SCANNER_LLM_MODEL` to one of the
+   four approved model IDs from the supplied policy. Default is
+   `openai/aws-claude-4-6-opus`.
+5. The workflow supplies `SKILL_SCANNER_LLM_BASE_URL` as
+   `https://aws-us-east-2-1.rag.progress.cloud/api/v1/predict/compat`.
+   Do not use `SKILL_SCANNER_LLM_API_BASE`. The wrapper rejects that misspelling,
+   other endpoints, missing keys, and unapproved model IDs before LLM scanning.
+6. Verify the gateway connection directly in an authorized shell, then scan
+   every skill with semantic mode before publication. Fork PRs containing skills
+   fail closed and need an approved external scan/review path; credentials are
+   never provided through a privileged `pull_request_target` workflow.
+
+For local use, source the three approved environment variables from an
+access-restricted file outside this repository, such as
+`~/.config/progress-rag/skill-scanner.env`. Never commit credentials.
+On a supported platform with Python 3.13 and the pinned scanner installed:
+
+```bash
+python -m pip install -r requirements-skill-scanner.txt
+skill-scanner --version
+python scripts/scan_skills.py --mode static \
+  --reports .skill-scanner-reports/static
+python scripts/scan_skills.py --mode llm \
+  --reports .skill-scanner-reports/llm
+```
+
+Use `--format json` with scanner 2.1.0; the supplied documentation's
+`--output-format` spelling is not supported by this release. Raw JSON and logs
+can contain skill content and findings. The optional local report directory is
+ignored by Git and must stay access-controlled. Public CI emits only counts;
+raw reports are not uploaded and temporary reports are deleted. Reproduce
+failures privately for triage and preserve approved evidence in restricted storage.
+
+Current local verification: 30 unit tests passed, including 16 Cisco gate tests;
+workflow syntax and immutable references passed. The repository currently has
+zero Git-visible skills, so no skill coverage or semantic verdict is claimed.
+The actual scanner installs under per-user Python 3.13 x64, but its CEL helper
+rejects the Windows ARM64 host even under emulation. A benign static smoke test
+failed closed at that platform check. No analyzer was disabled as a workaround.
+WSL is not installed here; use supported Linux CI or provision a supported
+development environment through your normal process. No Nuclia request was made.
+
 ## Vendor Configuration
 
 The scan workflows adapt the Polaris/Black Duck example from
@@ -96,6 +176,7 @@ Black Duck and Polaris have not run; no vendor verdict is implied.
 | Review resolution | Required by proposed ruleset | Admin application |
 | Polaris | Pinned workflow and PR feedback | Provisioning and scan results |
 | Black Duck | Pinned workflow and PR feedback | Provisioning and scan results |
+| Cisco AI skills | Static hook and semantic CI | Nuclia and scan evidence |
 
 The skills validator checks frontmatter names/descriptions and a nonempty
 instruction body. It does not yet validate all referenced links or an
@@ -114,7 +195,7 @@ files are ignored; ignoring files does not replace secret scanning.
    fork PRs safely, publish PR feedback, and fail checks for policy violations,
    scan errors, missing credentials, or unsupported analysis. Do not execute
    untrusted fork code with vendor credentials or a write-capable token.
-4. Run all four required checks on the same `main` commit. Determine exact vendor
+4. Run all six required checks on the same `main` commit. Determine exact vendor
    check names and their GitHub App IDs from actual check runs. Do not substitute
    dashboard labels, app installation IDs, or a successful skipped scan.
 5. Authenticate GitHub CLI directly with `gh auth login --web`. Never provide
