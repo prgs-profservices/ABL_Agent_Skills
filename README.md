@@ -22,7 +22,9 @@ Cisco Skill Scanner runs statically in pre-commit and Linux CI, with a separate
 Nuclia semantic check for PRs and pre-publication scans. It scans all Git-visible
 `SKILL.md` directories, including helper files. Empty scope is reported explicitly.
 Scanner 2.1.0 does not support Windows ARM64 hosts, even with emulated x64 Python;
-develop skills in a supported Linux/WSL environment rather than bypass the hook.
+VMware Fusion does not change that Windows guest limitation. Native macOS ARM64
+or a Linux ARM64 VM is supported. Use a separate checkout and virtual environment
+for each OS rather than sharing the Windows venv or bypassing the hook.
 
 See the [security baseline](docs/security-baseline.md) for activation steps,
 scan policy, and outstanding requirements.
