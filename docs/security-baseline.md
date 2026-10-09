@@ -46,6 +46,11 @@ because the dedicated Cisco job provides that check. Required check names are
 `Cisco skill static scan` and `Cisco skill semantic scan`; both are included in
 the active main ruleset.
 
+The semantic job only runs, and only requests `skill-scanner-nuclia` approval,
+when the repository contains skills. With none, a separate scope job finds zero
+skills and the semantic job is skipped, which GitHub counts as passing for the
+required check. No content is sent to Nuclia and no semantic coverage is claimed.
+
 The wrapper discovers every Git-visible `SKILL.md`, snapshots its directory's
 Git-visible helper files, and does not include ignored `.env` files, local
 settings, or symlinks. This covers tracked and eligible untracked skills locally;
