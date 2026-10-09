@@ -29,9 +29,29 @@ jobs:
       - name: Scan all Git-visible skills statically
         run: python scripts/scan_skills.py --mode static
 
+  scope:
+    name: Cisco skill scan scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      count: ${{ steps.scope.outputs.count }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Count Git-visible skills
+        id: scope
+        shell: bash
+        run: echo "count=$(python scripts/scan_skills.py --count-only)" >> "$GITHUB_OUTPUT"
+
   semantic:
     name: Cisco skill semantic scan
-    needs: static
+    needs: [static, scope]
+    # Skipped without skills, so the Nuclia approval gate only applies when content is sent.
+    if: needs.scope.outputs.count != '0'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: skill-scanner-nuclia
@@ -42,12 +62,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.13'
-      - name: Discover scan scope
-        id: scope
-        shell: bash
-        run: echo "count=$(python scripts/scan_skills.py --count-only)" >> "$GITHUB_OUTPUT"
       - name: Require a trusted scan context
-        if: steps.scope.outputs.count != '0'
         env:
           IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
         shell: bash
@@ -57,15 +72,10 @@ jobs:
             exit 1
           fi
       - name: Install pinned Cisco scanner
-        if: steps.scope.outputs.count != '0'
         run: python -m pip install -r requirements-skill-scanner.txt
       - name: Scan with the approved Nuclia gateway
-        if: steps.scope.outputs.count != '0'
         env:
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL || 'openai/aws-claude-4-6-opus' }}
           SKILL_SCANNER_LLM_BASE_URL: https://aws-us-east-2-1.rag.progress.cloud/api/v1/predict/compat
           SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
-        run: python scripts/scan_skills.py --mode llm
-      - name: Report empty scope without claiming coverage
-        if: steps.scope.outputs.count == '0'
         run: python scripts/scan_skills.py --mode llm
