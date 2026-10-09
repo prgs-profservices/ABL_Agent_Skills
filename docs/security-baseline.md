@@ -152,15 +152,17 @@ access to approved organization secrets. Never include their values in code:
 
 Configure these non-secret repository or organization variables:
 
-- `POLARIS_APPLICATION_NAME`: configured as `Progress-OpenEdge` from the example.
 - `BLACKDUCK_PROJECT_GROUP_NAME`: configured as `Progress-OpenEdge`.
 - `SECURITY_BRIDGE_CLI_VERSION`: an approved fixed Bridge CLI release version.
 
-Both scanners use the separate project name `ABL_Agent_Skills`. Confirm project
+Polaris uses `ABL_Agent_Skills` for both its application and project name; the
+workflow sets the application name directly and does not use a repository variable.
+Confirm this application and project exist and that the Polaris token can scan them.
+Black Duck uses the separate project name `ABL_Agent_Skills`. Confirm project
 creation/permissions rather than reusing the example's connector project.
 The copied service endpoints are `https://polaris.blackduck.com` and
 `https://progresssoftware.app.blackduck.com`; confirm both with scan owners.
-The two application/group variables were saved and read back on 2026-10-02.
+The Black Duck group variable was saved and read back on 2026-10-02.
 The example inherits its scanner secrets from the `Progress-OpenEdge`
 organization. The target repository currently has neither repository-level
 scanner secrets nor inherited organization secrets.
@@ -178,8 +180,9 @@ Ask a scan administrator to provision approved tokens for this project:
 3. Under **Variables**, create `SECURITY_BRIDGE_CLI_VERSION` using an approved
    fixed release. The example defaults to a moving version, so it supplies no
    fixed version to copy. Ask the scan owner for a compatible supported version.
-4. Confirm the tokens permit scanning the new `ABL_Agent_Skills` project in
-   the copied application/group, then run both workflows after publication.
+4. Confirm the Polaris token can scan the `ABL_Agent_Skills` application and
+   project, and that the Black Duck token can scan its configured group/project;
+   then run both workflows after publication.
 
 Polaris uploads a Git archive for remote Python SAST and waits for completion.
 Black Duck inventories the installed development dependencies and repository

@@ -53,8 +53,6 @@ jobs:
           polaris_application_name: ${{ vars.POLARIS_APPLICATION_NAME }}
           polaris_project_name: ABL_Agent_Skills
           polaris_assessment_types: SAST
-          polaris_assessment_mode: SOURCE_UPLOAD
-          polaris_test_sast_type: ${{ github.event_name == 'pull_request' && 'SAST_RAPID' || '' }}
           polaris_branch_parent_name: ${{ github.base_ref }}
           project_directory: .
           project_source_archive: ${{ runner.temp }}/polaris-source.zip
