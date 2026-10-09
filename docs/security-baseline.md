@@ -7,6 +7,30 @@ GitHub enforcement until it is committed, reviewed, and activated.
 The full organization policy is still awaiting an approved Confluence export.
 This baseline is not a certification of compliance.
 
+### Live Settings Verified on 2026-10-02
+
+The active `main` ruleset requires PRs, one approval, approval of the latest
+push, dismissed stale approvals, resolved review conversations, and all six
+security/CI checks from GitHub Actions. Up-to-date checks are required; force
+pushes and branch deletion are blocked. There are no bypass actors.
+GitHub's effective branch-rules API confirms these rules apply to `main`.
+
+Dependency alerts and automated security updates, native secret scanning and
+push protection, and private vulnerability reporting are enabled and verified.
+The existing `skill-scanner-nuclia` environment now requires SteveSouthwell
+approval, prevents self-review and administrator bypass, and allows only `main`
+and `refs/pull/*/merge` deployments. Its Nuclia secret is present; the value
+was not accessed, and gateway authorization has not yet been tested.
+
+Current Content CI, TruffleHog, and Cisco jobs passed. Cisco had zero skills,
+so those successful jobs do not establish semantic coverage. Polaris and Black
+Duck still fail because their required token secrets are missing. Those failures
+now block merging; do not remove required checks to work around provisioning.
+A manual Cisco verification run was dispatched after environment protection:
+[run 37025124368](https://github.com/prgs-profservices/ABL_Agent_Skills/actions/runs/37025124368).
+Steve must approve its protected stage. Periodic TruffleHog execution still
+needs a recorded schedule-triggered run; configuration alone is not that evidence.
+
 ## Cisco AI Skill Scanning
 
 Cisco Skill Scanner is required by the supplied skill-security policy for
@@ -20,7 +44,7 @@ runs static analysis, then a Nuclia-backed semantic check on PRs, `main` pushes,
 merge groups, and manual dispatch. Content CI skips the duplicate static hook
 because the dedicated Cisco job provides that check. Required check names are
 `Cisco skill static scan` and `Cisco skill semantic scan`; both are included in
-the proposed main ruleset. Live enforcement still needs administrator activation.
+the active main ruleset.
 
 The semantic job only runs, and only requests `skill-scanner-nuclia` approval,
 when the repository contains skills. With none, a separate scope job finds zero
@@ -91,6 +115,31 @@ rejects the Windows ARM64 host even under emulation. A benign static smoke test
 failed closed at that platform check. No analyzer was disabled as a workaround.
 WSL is not installed here; use supported Linux CI or provision a supported
 development environment through your normal process. No Nuclia request was made.
+
+### VMware Fusion and the Mac Host
+
+Fusion running Windows ARM64 on Apple silicon does not make the guest a
+supported Windows x64 host. Emulated x64 Python still leaves the CEL helper
+seeing ARM64, which scanner 2.1.0 rejects.
+
+The scanner supports native macOS ARM64 and Linux ARM64. Run it in a terminal
+on the Mac host, or in a supported Linux ARM64 VM. Create a separate checkout
+and Python 3.13 virtual environment for that OS; do not reuse the Windows venv.
+With Python 3.13 installed on the Mac or Linux guest:
+
+```bash
+git clone https://github.com/prgs-profservices/ABL_Agent_Skills.git
+cd ABL_Agent_Skills
+python3.13 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m pip install -r requirements-skill-scanner.txt
+.venv/bin/python -m pre_commit install
+.venv/bin/python scripts/scan_skills.py --mode static
+```
+
+These are supported-platform instructions, not a claim that the Mac host was
+tested from this Windows session. LLM mode still needs authorized Nuclia access
+and the three approved environment variables described above.
 
 ## Vendor Configuration
 
