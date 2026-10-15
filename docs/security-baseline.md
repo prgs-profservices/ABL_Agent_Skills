@@ -10,15 +10,17 @@ This baseline is not a certification of compliance.
 ### Live Settings Verified on 2026-10-15
 
 The active `main` ruleset (`Public repository security baseline`) requires PRs,
-dismisses stale approvals on new pushes, requires approval of the most recent
-push, requires resolved review conversations, and requires all six security/CI
-checks from GitHub Actions. Up-to-date checks are required; force pushes and
-branch deletion are blocked. There are no bypass actors.
+dismisses stale approvals on new pushes, requires resolved review conversations,
+and requires all six security/CI checks from GitHub Actions. Up-to-date checks
+are required; force pushes and branch deletion are blocked. There are no bypass
+actors.
 
 **Open gap:** the required approving review count is currently `0`, so a PR
 author can merge their own PR without an independent review. Raising it to at
-least `1` is planned; until then, the approval-related settings above have no
-practical effect. `scripts/configure_github.py` already proposes `1`.
+least `1` is planned. "Require approval of the most recent push" is off for now
+because GitHub enforces it as a mandatory approval even when the count is `0`;
+turn it on together with the approval count.
+`scripts/configure_github.py` already proposes both.
 
 Dependency alerts and automated security updates, native secret scanning and
 push protection, and private vulnerability reporting are enabled.
@@ -251,7 +253,7 @@ Black Duck and Polaris have not run; no vendor verdict is implied.
 | Dependabot | Daily Actions, pip, and pre-commit update PRs | None |
 | Secret scanning | TruffleHog PR, push, daily, manual | None |
 | PR-only main | Active ruleset; no bypass actors | None |
-| PR approval | Stale dismissal, last-push approval | Require 1+ approvals |
+| PR approval | Stale approvals dismissed | 1+ approvals, last-push |
 | Review resolution | Required by active ruleset | None |
 | Polaris | Pinned workflow and PR feedback | Confirm server policy |
 | Black Duck | Pinned workflow and PR feedback | None |
