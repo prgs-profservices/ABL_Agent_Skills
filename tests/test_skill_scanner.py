@@ -1,8 +1,19 @@
+import io
+import json
 from pathlib import Path, PurePosixPath
 import tempfile
 import unittest
+from unittest.mock import patch
+import urllib.error
 
-from scripts.scan_skills import NUCLIA_URL, llm_environment, skill_directories, stage_skill, validate_report
+from scripts.scan_skills import (
+    NUCLIA_URL,
+    llm_environment,
+    skill_directories,
+    stage_skill,
+    validate_report,
+    verify_nuclia_gateway,
+)
 
 
 class SkillScannerTests(unittest.TestCase):
@@ -102,6 +113,20 @@ class SkillScannerTests(unittest.TestCase):
             stage_skill(root, ["skills/test/SKILL.md"], PurePosixPath("skills/test"), destination)
             self.assertTrue((destination / "SKILL.md").is_file())
             self.assertFalse((destination / ".env").exists())
+
+    def test_nuclia_gateway_probe_succeeds_on_valid_response(self):
+        response = io.BytesIO(json.dumps({"choices": [{"message": {"content": "OK"}}]}).encode("utf-8"))
+        response.__enter__ = lambda self: self
+        response.__exit__ = lambda self, *args: False
+        with patch("urllib.request.urlopen", return_value=response) as mocked:
+            verify_nuclia_gateway(self.environment())
+            request = mocked.call_args[0][0]
+            self.assertEqual(request.full_url, f"{NUCLIA_URL}/chat/completions")
+
+    def test_nuclia_gateway_probe_blocks_on_http_error(self):
+        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("unauthorized")):
+            with self.assertRaises(ValueError):
+                verify_nuclia_gateway(self.environment())
 
 
 if __name__ == "__main__":
