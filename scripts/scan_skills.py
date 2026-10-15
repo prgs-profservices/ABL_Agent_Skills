@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
+import urllib.request
 
 
 NUCLIA_URL = "https://aws-us-east-2-1.rag.progress.cloud/api/v1/predict/compat"
@@ -71,6 +73,31 @@ def llm_environment(environment):
     return result
 
 
+def verify_nuclia_gateway(environment):
+    payload = json.dumps({
+        "model": environment["SKILL_SCANNER_LLM_MODEL"],
+        "messages": [{"role": "user", "content": "Reply with OK"}],
+        "max_tokens": 16,
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        f"{environment['SKILL_SCANNER_LLM_BASE_URL'].rstrip('/')}/chat/completions",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {environment['SKILL_SCANNER_LLM_API_KEY'].strip()}",
+            "Content-Type": "application/json",
+            "User-Agent": "abl-skill-scanner/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+        raise ValueError("Nuclia gateway probe failed") from error
+    if not isinstance(body, dict) or not isinstance(body.get("choices"), list) or not body["choices"]:
+        raise ValueError("Nuclia gateway returned an unexpected response")
+
+
 def validate_report(report, mode):
     if not isinstance(report, dict) or not isinstance(report.get("findings"), list):
         raise ValueError("Scanner returned an invalid JSON report")
@@ -131,17 +158,24 @@ def main():
         if arguments.count_only:
             print(len(skills))
             return 0
+        environment = dict(os.environ)
+        if arguments.mode == "llm":
+            environment = llm_environment(environment)
+            verify_nuclia_gateway(environment)
+        else:
+            environment = {name: value for name, value in environment.items() if not name.startswith("SKILL_SCANNER_LLM_")}
         if not skills:
-            print("Cisco Skill Scanner: no Git-visible SKILL.md files; no security coverage claimed.")
+            if arguments.mode == "llm":
+                print(
+                    f"Cisco Skill Scanner: Nuclia gateway verified ({environment['SKILL_SCANNER_LLM_MODEL']}); "
+                    "no Git-visible SKILL.md files; no security coverage claimed."
+                )
+            else:
+                print("Cisco Skill Scanner: no Git-visible SKILL.md files; no security coverage claimed.")
             return 0
         if sys.version_info < (3, 13):
             raise ValueError("Organization policy requires Python 3.13+ for skill scanning")
         version = importlib.metadata.version("cisco-ai-skill-scanner")
-        environment = dict(os.environ)
-        if arguments.mode == "llm":
-            environment = llm_environment(environment)
-        else:
-            environment = {name: value for name, value in environment.items() if not name.startswith("SKILL_SCANNER_LLM_")}
         with tempfile.TemporaryDirectory(prefix="abl-skill-scan-") as temporary:
             workspace = Path(temporary)
             reports = arguments.reports.resolve() if arguments.reports else workspace / "reports"
