@@ -122,6 +122,7 @@ class SkillScannerTests(unittest.TestCase):
             verify_nuclia_gateway(self.environment())
             request = mocked.call_args[0][0]
             self.assertEqual(request.full_url, f"{NUCLIA_URL}/chat/completions")
+            self.assertEqual(json.loads(request.data.decode("utf-8"))["model"], "aws-claude-4-6-opus")
 
     def test_nuclia_gateway_probe_blocks_on_http_error(self):
         with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("unauthorized")):

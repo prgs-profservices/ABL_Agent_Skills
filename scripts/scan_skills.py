@@ -74,8 +74,9 @@ def llm_environment(environment):
 
 
 def verify_nuclia_gateway(environment):
+    model = environment["SKILL_SCANNER_LLM_MODEL"].removeprefix("openai/")
     payload = json.dumps({
-        "model": environment["SKILL_SCANNER_LLM_MODEL"],
+        "model": model,
         "messages": [{"role": "user", "content": "Reply with OK"}],
         "max_tokens": 16,
     }).encode("utf-8")
