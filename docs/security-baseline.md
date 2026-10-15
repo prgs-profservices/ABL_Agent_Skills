@@ -9,18 +9,13 @@ This baseline is not a certification of compliance.
 
 ### Live Settings Verified on 2026-10-15
 
-The active `main` ruleset (`Public repository security baseline`) requires PRs,
-dismisses stale approvals on new pushes, requires resolved review conversations,
-and requires all six security/CI checks from GitHub Actions. Up-to-date checks
-are required; force pushes and branch deletion are blocked. There are no bypass
-actors.
-
-**Open gap:** the required approving review count is currently `0`, so a PR
-author can merge their own PR without an independent review. Raising it to at
-least `1` is planned. "Require approval of the most recent push" is off for now
-because GitHub enforces it as a mandatory approval even when the count is `0`;
-turn it on together with the approval count.
-`scripts/configure_github.py` already proposes both.
+The active `main` ruleset (`Public repository security baseline`) requires PRs
+with at least one approval from a reviewer with write access, approval of the
+most recent push by someone other than its pusher, dismissal of stale approvals
+on new pushes, resolved review conversations, and all six security/CI checks
+from GitHub Actions. Up-to-date checks are required; force pushes and branch
+deletion are blocked. There are no bypass actors. Approvals have been required
+since 2026-10-15; earlier PRs could be merged by their author without review.
 
 Dependency alerts and automated security updates, native secret scanning and
 push protection, and private vulnerability reporting are enabled.
@@ -54,9 +49,10 @@ and no semantic coverage is claimed.
 The semantic job reads `SKILL_SCANNER_LLM_API_KEY` from repository secrets
 (and from Dependabot secrets for Dependabot PRs). There is no separate GitHub
 Environment deployment approval; the job runs automatically on internal PRs.
-Fork PRs fail closed. Because PR code runs with this key before review, the
-team relies on PR approvals to protect it. That protection is only effective
-once the ruleset requires at least one approval (see the open gap above).
+Fork PRs fail closed. PR code runs with this key before review, so a required
+approval stops unreviewed changes from being merged, but it does not stop a PR
+branch from using the key while its checks run. Only people with write access
+can push internal branches.
 
 The wrapper discovers every Git-visible `SKILL.md`, snapshots its directory's
 Git-visible helper files, and does not include ignored `.env` files, local
@@ -253,7 +249,7 @@ Black Duck and Polaris have not run; no vendor verdict is implied.
 | Dependabot | Daily Actions, pip, and pre-commit update PRs | None |
 | Secret scanning | TruffleHog PR, push, daily, manual | None |
 | PR-only main | Active ruleset; no bypass actors | None |
-| PR approval | Stale approvals dismissed | 1+ approvals, last-push |
+| PR approval | 1 approval, last-push approval, stale dismissal | None |
 | Review resolution | Required by active ruleset | None |
 | Polaris | Pinned workflow and PR feedback | Confirm server policy |
 | Black Duck | Pinned workflow and PR feedback | None |
