@@ -1,7 +1,7 @@
 minimum_pre_commit_version: '4.5.1'
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: check-yaml
       - id: check-json
@@ -22,13 +22,13 @@ repos:
         name: Lint Markdown
         entry: pymarkdown scan
         language: python
-        additional_dependencies: [pymarkdownlnt==0.9.33]
+        additional_dependencies: [pymarkdownlnt==0.9.40]
         types: [markdown]
       - id: cisco-skill-static
         name: Cisco AI skill static scan
         entry: python scripts/scan_skills.py --mode static
         language: python
         language_version: python3.13
-        additional_dependencies: [cisco-ai-skill-scanner==2.1.0]
+        additional_dependencies: [cisco-ai-skill-scanner==2.2.2]
         pass_filenames: false
         always_run: true

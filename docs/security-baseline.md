@@ -7,34 +7,31 @@ GitHub enforcement until it is committed, reviewed, and activated.
 The full organization policy is still awaiting an approved Confluence export.
 This baseline is not a certification of compliance.
 
-### Live Settings Verified on 2026-10-02
+### Live Settings Verified on 2026-10-15
 
-The active `main` ruleset requires PRs, one approval, approval of the latest
-push, dismissed stale approvals, resolved review conversations, and all six
-security/CI checks from GitHub Actions. Up-to-date checks are required; force
-pushes and branch deletion are blocked. There are no bypass actors.
-GitHub's effective branch-rules API confirms these rules apply to `main`.
+The active `main` ruleset (`Public repository security baseline`) requires PRs,
+dismisses stale approvals on new pushes, requires approval of the most recent
+push, requires resolved review conversations, and requires all six security/CI
+checks from GitHub Actions. Up-to-date checks are required; force pushes and
+branch deletion are blocked. There are no bypass actors.
+
+**Open gap:** the required approving review count is currently `0`, so a PR
+author can merge their own PR without an independent review. Raising it to at
+least `1` is planned; until then, the approval-related settings above have no
+practical effect. `scripts/configure_github.py` already proposes `1`.
 
 Dependency alerts and automated security updates, native secret scanning and
-push protection, and private vulnerability reporting are enabled and verified.
-The existing `skill-scanner-nuclia` environment now requires SteveSouthwell
-approval, prevents self-review and administrator bypass, and allows only `main`
-and `refs/pull/*/merge` deployments. Its Nuclia secret is present; the value
-was not accessed, and gateway authorization has not yet been tested.
+push protection, and private vulnerability reporting are enabled.
 
-Current Content CI, TruffleHog, and Cisco jobs passed. Cisco had zero skills,
-so those successful jobs do not establish semantic coverage. Polaris and Black
-Duck still fail because their required token secrets are missing. Those failures
-now block merging; do not remove required checks to work around provisioning.
-A manual Cisco verification run was dispatched after environment protection:
-[run 37025124368](https://github.com/prgs-profservices/ABL_Agent_Skills/actions/runs/37025124368).
-Steve must approve its protected stage. Periodic TruffleHog execution still
-needs a recorded schedule-triggered run; configuration alone is not that evidence.
+All six required checks run on PRs. Black Duck and Polaris authenticate with
+repository secrets, and Dependabot PRs use separate Dependabot secrets with the
+same names; rotate both copies together. Scheduled TruffleHog runs succeed
+daily on `main`.
 
 ## Cisco AI Skill Scanning
 
 Cisco Skill Scanner is required by the supplied skill-security policy for
-development, PR review, and pre-publication. Version `2.1.0` is pinned in
+development, PR review, and pre-publication. Version `2.2.2` is pinned in
 `requirements-skill-scanner.txt` and the local pre-commit hook. CI uses Python
 3.13 to meet the organization's prerequisite. The scanner's published package
 supports older Python too, but that does not override the organization policy.
@@ -46,10 +43,18 @@ because the dedicated Cisco job provides that check. Required check names are
 `Cisco skill static scan` and `Cisco skill semantic scan`; both are included in
 the active main ruleset.
 
-The semantic job only runs, and only requests `skill-scanner-nuclia` approval,
-when the repository contains skills. With none, a separate scope job finds zero
-skills and the semantic job is skipped, which GitHub counts as passing for the
-required check. No content is sent to Nuclia and no semantic coverage is claimed.
+The semantic job always runs after the static job. Before scanning, the wrapper
+validates the Nuclia configuration and sends a minimal `Reply with OK` request
+to the gateway, so a missing, revoked, or unauthorized key fails the check even
+when the repository has no skills. With zero skills, no skill content is sent
+and no semantic coverage is claimed.
+
+The semantic job reads `SKILL_SCANNER_LLM_API_KEY` from repository secrets
+(and from Dependabot secrets for Dependabot PRs). There is no separate GitHub
+Environment deployment approval; the job runs automatically on internal PRs.
+Fork PRs fail closed. Because PR code runs with this key before review, the
+team relies on PR approvals to protect it. That protection is only effective
+once the ruleset requires at least one approval (see the open gap above).
 
 The wrapper discovers every Git-visible `SKILL.md`, snapshots its directory's
 Git-visible helper files, and does not include ignored `.env` files, local
@@ -68,23 +73,33 @@ organization-approved false-positive policy. No blanket ignore list is added.
 
 1. Contact your BU management/Product Security for Nuclia onboarding and an
    approved NUA key in `aws-us-east-2-1`. Do not send the key through chat.
-2. In repository **Settings > Environments**, create `skill-scanner-nuclia`.
-   Configure required reviewers, prevent self-review, restrict deployment refs,
-   and disallow protection bypass where supported before sharing credentials.
-   Merely naming the environment in YAML does not enable approval protections.
-3. Add environment secret `SKILL_SCANNER_LLM_API_KEY` directly through GitHub.
+2. Add `SKILL_SCANNER_LLM_API_KEY` as both a repository Actions secret and a
+   Dependabot secret, entered directly in GitHub:
+
+   ```powershell
+   gh secret set SKILL_SCANNER_LLM_API_KEY --repo prgs-profservices/ABL_Agent_Skills
+   gh secret set SKILL_SCANNER_LLM_API_KEY --app dependabot --repo prgs-profservices/ABL_Agent_Skills
+   ```
+
    Confirm that sending reviewed skill content to this gateway is authorized.
-4. Optionally set repository variable `SKILL_SCANNER_LLM_MODEL` to one of the
-   four approved model IDs from the supplied policy. Default is
-   `openai/aws-claude-4-6-opus`.
-5. The workflow supplies `SKILL_SCANNER_LLM_BASE_URL` as
+3. Optionally set repository variable `SKILL_SCANNER_LLM_MODEL` to one of the
+   four approved model IDs. Default is `openai/aws-claude-4-6-opus`. The
+   `openai/` prefix is the LiteLLM provider prefix used by the scanner; the
+   gateway itself expects the bare ID (for example `aws-claude-4-6-opus`), and
+   the wrapper strips the prefix for its direct gateway probe.
+4. The workflow supplies `SKILL_SCANNER_LLM_BASE_URL` as
    `https://aws-us-east-2-1.rag.progress.cloud/api/v1/predict/compat`.
    Do not use `SKILL_SCANNER_LLM_API_BASE`. The wrapper rejects that misspelling,
    other endpoints, missing keys, and unapproved model IDs before LLM scanning.
-6. Verify the gateway connection directly in an authorized shell, then scan
-   every skill with semantic mode before publication. Fork PRs containing skills
-   fail closed and need an approved external scan/review path; credentials are
-   never provided through a privileged `pull_request_target` workflow.
+5. Run `python scripts/scan_skills.py --mode llm` with the three variables set
+   to confirm the gateway accepts the key, then scan every skill with semantic
+   mode before publication. Fork PRs fail closed and need an approved external
+   scan/review path; credentials are never provided through a privileged
+   `pull_request_target` workflow.
+
+Gateway authorization was verified on 2026-10-15 in
+[run 38789719153](https://github.com/prgs-profservices/ABL_Agent_Skills/actions/runs/38789719153).
+That run had zero skills, so it proves connectivity only, not semantic coverage.
 
 For local use, source the three approved environment variables from an
 access-restricted file outside this repository, such as
@@ -100,27 +115,27 @@ python scripts/scan_skills.py --mode llm \
   --reports .skill-scanner-reports/llm
 ```
 
-Use `--format json` with scanner 2.1.0; the supplied documentation's
+Use `--format json` with scanner 2.2.2; the supplied documentation's
 `--output-format` spelling is not supported by this release. Raw JSON and logs
 can contain skill content and findings. The optional local report directory is
 ignored by Git and must stay access-controlled. Public CI emits only counts;
 raw reports are not uploaded and temporary reports are deleted. Reproduce
 failures privately for triage and preserve approved evidence in restricted storage.
 
-Current local verification: 30 unit tests passed, including 16 Cisco gate tests;
+Current local verification: 32 unit tests passed, including 18 Cisco gate tests;
 workflow syntax and immutable references passed. The repository currently has
 zero Git-visible skills, so no skill coverage or semantic verdict is claimed.
 The actual scanner installs under per-user Python 3.13 x64, but its CEL helper
 rejects the Windows ARM64 host even under emulation. A benign static smoke test
 failed closed at that platform check. No analyzer was disabled as a workaround.
 WSL is not installed here; use supported Linux CI or provision a supported
-development environment through your normal process. No Nuclia request was made.
+development environment through your normal process.
 
 ### VMware Fusion and the Mac Host
 
 Fusion running Windows ARM64 on Apple silicon does not make the guest a
 supported Windows x64 host. Emulated x64 Python still leaves the CEL helper
-seeing ARM64, which scanner 2.1.0 rejects.
+seeing ARM64, which the scanner rejects (observed with 2.1.0).
 
 The scanner supports native macOS ARM64 and Linux ARM64. Run it in a terminal
 on the Mac host, or in a supported Linux ARM64 VM. Create a separate checkout
@@ -150,27 +165,27 @@ public vendor action directly, pinned to commit
 `152247222aa9cd38124acd5c0cf60f4db71adc3f` (v2.11.0).
 
 Configure these secrets through GitHub's settings, or grant this repository
-access to approved organization secrets. Never include their values in code:
+access to approved organization secrets. Never include their values in code.
+Each must exist both as an Actions secret and as a Dependabot secret, because
+workflows triggered by Dependabot PRs only see Dependabot secrets. When a token
+is rotated, update both copies; a stale Dependabot copy makes only Dependabot
+PRs fail with `Request failed authorization`.
 
 - `POLARIS_ACCESS_TOKEN`
 - `BLACKDUCK_TOKEN`
+- `SKILL_SCANNER_LLM_API_KEY`
 
 Configure these non-secret repository or organization variables:
 
 - `BLACKDUCK_PROJECT_GROUP_NAME`: configured as `Progress-OpenEdge`.
-- `SECURITY_BRIDGE_CLI_VERSION`: an approved fixed Bridge CLI release version.
+- `POLARIS_APPLICATION_NAME`: configured as `ADP-OpenEdge-Platform`.
+- `SECURITY_BRIDGE_CLI_VERSION`: configured as `4.5.0`.
 
-Polaris uses `ABL_Agent_Skills` for both its application and project name; the
-workflow sets the application name directly and does not use a repository variable.
-Confirm this application and project exist and that the Polaris token can scan them.
-Black Duck uses the separate project name `ABL_Agent_Skills`. Confirm project
-creation/permissions rather than reusing the example's connector project.
-The copied service endpoints are `https://polaris.blackduck.com` and
-`https://progresssoftware.app.blackduck.com`; confirm both with scan owners.
-The Black Duck group variable was saved and read back on 2026-10-02.
-The example inherits its scanner secrets from the `Progress-OpenEdge`
-organization. The target repository currently has neither repository-level
-scanner secrets nor inherited organization secrets.
+Polaris uses the `POLARIS_APPLICATION_NAME` application and the
+`ABL_Agent_Skills` project. Black Duck uses the project name `ABL_Agent_Skills`
+in the configured group. The service endpoints are
+`https://polaris.blackduck.com` and `https://progresssoftware.app.blackduck.com`.
+All scanner secrets are repository-level; none are inherited from an organization.
 
 GitHub does not expose stored secret values, so they cannot be copied through
 the API. Organization secrets cannot be shared directly between the example's
@@ -204,9 +219,15 @@ Expected job check names are `Polaris SAST Scan` and `Black Duck SCA Scan`,
 normally published by GitHub Actions (App ID 15368). Verify actual successful
 check runs before supplying these names and IDs to the ruleset helper.
 
-The two workflows passed SHA validation, actionlint, input-name verification
-against the pinned vendor action, and six synthetic preflight scenarios.
-These checks are not Black Duck/Polaris scan results: no vendor scan has run.
+Both vendor scans run on PRs and on `main`; Black Duck also runs daily. Polaris
+and Black Duck post ordinary PR comments, not review threads, so the "resolve
+conversations" rule does not apply to them; their findings are enforced through
+the failing required check. Black Duck fails for `BLOCKER,CRITICAL,MAJOR`.
+Polaris sets no failure severity in the workflow, so whether findings fail the
+check depends on the server-side Polaris policy; confirm it with the Polaris owner.
+
+The Black Duck action downloads Bridge CLI and Detect at run time by version,
+not by hash. These downloads are outside the repository's SHA-pin enforcement.
 
 ## Initial Local Verification
 
@@ -223,17 +244,18 @@ Black Duck and Polaris have not run; no vendor verdict is implied.
 
 ## Control Matrix
 
-| Control | Implementation | Activation still needed |
+| Control | Implementation | Remaining work |
 | --- | --- | --- |
-| Content CI | YAML/JSON, Markdown, skills, validator tests | GitHub run |
-| Immutable pins | Action/hook SHAs, scanner digest | Update review |
-| Dependabot | Daily Actions and Python update PRs | Main-branch config |
-| Secret scanning | TruffleHog PR, push, daily, manual | GitHub scan |
-| PR-only main | Ruleset helper; no bypass actors | Admin application |
-| Review resolution | Required by proposed ruleset | Admin application |
-| Polaris | Pinned workflow and PR feedback | Provisioning and scan results |
-| Black Duck | Pinned workflow and PR feedback | Provisioning and scan results |
-| Cisco AI skills | Static hook and semantic CI | Nuclia and scan evidence |
+| Content CI | YAML/JSON, Markdown, skills, validator tests | None |
+| Immutable pins | Action/hook SHAs, scanner digest | Vendor runtime downloads |
+| Dependabot | Daily Actions, pip, and pre-commit update PRs | None |
+| Secret scanning | TruffleHog PR, push, daily, manual | None |
+| PR-only main | Active ruleset; no bypass actors | None |
+| PR approval | Stale dismissal, last-push approval | Require 1+ approvals |
+| Review resolution | Required by active ruleset | None |
+| Polaris | Pinned workflow and PR feedback | Confirm server policy |
+| Black Duck | Pinned workflow and PR feedback | None |
+| Cisco AI skills | Static hook and semantic CI | Skills to scan |
 
 The skills validator checks frontmatter names/descriptions and a nonempty
 instruction body. It does not yet validate all referenced links or an
@@ -311,10 +333,15 @@ vendor reports as public artifacts. Rerun affected checks after fixes.
 
 ## Maintain Pins
 
-Dependabot updates Actions and Python requirements; it does not update every
-pre-commit revision, local hook dependency, scanner digest, or actionlint binary.
-For external hooks, use `pre-commit autoupdate --freeze` and review the PR.
-Update local hook dependencies together with their development requirements.
+Dependabot updates Actions, Python requirements, and pre-commit hooks. For
+pre-commit, it updates the external hook `rev` SHAs (the `# frozen:` comment
+records the matching tag) and the `additional_dependencies` of the local Python
+hooks. The same package can appear in a requirements file and in a hook, for
+example `cisco-ai-skill-scanner` and `pymarkdownlnt`. Dependabot then opens
+separate pip and pre-commit PRs; merge both so the versions stay aligned.
+
+Dependabot does not update the TruffleHog scanner digest, the actionlint binary,
+the `SECURITY_BRIDGE_CLI_VERSION` variable, or the Python runtime versions.
 Review scanner release provenance, replace its digest, and rerun scanning.
 Update actionlint's release URL and checksum together and validate both workflows.
 All changes must follow the same PR and security-check requirements.
