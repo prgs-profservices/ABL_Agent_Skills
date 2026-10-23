@@ -68,7 +68,8 @@ configuration are made by maintainers only.
 ## Releases
 
 Maintainers publish releases by tagging a commit on `main`. Each release tag
-re-runs the Cisco and Black Duck scans before the GitHub Release is created.
+re-runs the Cisco, Black Duck and Polaris scans before the GitHub Release is
+created.
 
 ## License
 

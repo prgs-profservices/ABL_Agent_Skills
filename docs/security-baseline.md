@@ -273,9 +273,10 @@ which:
 
 1. rejects tags that are not annotated, are not semantic versions, or point to a
    commit that is not on `main`
-2. re-runs the Cisco static and semantic scans and the Black Duck scan on the
+2. re-runs the Cisco static and semantic scans, Black Duck, and Polaris on the
    tagged commit; Black Duck records the result under a project version named
-   after the tag
+   after the tag, and Polaris under a branch named after the tag with `main` as
+   its parent
 3. creates the GitHub Release with generated notes only if every scan passes;
    tags with a pre-release suffix are published as pre-releases
 
@@ -288,8 +289,7 @@ git push origin v1.0.0
 ```
 
 If a release scan fails, no release is created. The tag cannot be moved or
-deleted, so fix the problem on `main` and publish the next version. Polaris is
-not re-run at release time because it already ran on the PRs and on `main`.
+deleted, so fix the problem on `main` and publish the next version.
 
 `npx skills add prgs-profservices/ABL_Agent_Skills` installs the default branch,
 not the latest release. Users who want a fixed version add `#<tag>`.

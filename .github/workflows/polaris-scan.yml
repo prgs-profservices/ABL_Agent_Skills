@@ -6,6 +6,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -53,7 +54,8 @@ jobs:
           polaris_application_name: ${{ vars.POLARIS_APPLICATION_NAME }}
           polaris_project_name: ABL_Agent_Skills
           polaris_assessment_types: SAST
-          polaris_branch_parent_name: ${{ github.base_ref }}
+          polaris_branch_name: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          polaris_branch_parent_name: ${{ github.base_ref || (github.ref_type == 'tag' && 'main') || '' }}
           project_directory: .
           project_source_archive: ${{ runner.temp }}/polaris-source.zip
           polaris_test_sast_location: remote
