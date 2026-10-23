@@ -47,4 +47,6 @@ or a Linux ARM64 VM is supported. Use a separate checkout and virtual environmen
 for each OS rather than sharing the Windows venv or bypassing the hook.
 
 See the [security baseline](docs/security-baseline.md) for activation steps,
-scan policy, and outstanding requirements.
+scan policy, and outstanding requirements. Maintainers: see the
+[maintainer guide](docs/maintainers.md) for reviewing community PRs and
+publishing releases.
