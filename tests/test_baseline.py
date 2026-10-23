@@ -52,6 +52,7 @@ class BaselineTests(unittest.TestCase):
         self.assertTrue(rules["pull_request"]["required_review_thread_resolution"])
         self.assertTrue(rules["pull_request"]["dismiss_stale_reviews_on_push"])
         self.assertEqual(rules["pull_request"]["required_approving_review_count"], 1)
+        self.assertTrue(rules["pull_request"]["require_code_owner_review"])
         self.assertIn("deletion", rules)
         self.assertIn("non_fast_forward", rules)
         checks = rules["required_status_checks"]["required_status_checks"]

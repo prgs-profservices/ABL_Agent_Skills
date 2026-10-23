@@ -7,18 +7,27 @@ GitHub enforcement until it is committed, reviewed, and activated.
 The full organization policy is still awaiting an approved Confluence export.
 This baseline is not a certification of compliance.
 
-### Live Settings Verified on 2026-10-15
+### Live Settings Verified on 2026-10-23
 
 The active `main` ruleset (`Public repository security baseline`) requires PRs
-with at least one approval from a reviewer with write access, approval of the
-most recent push by someone other than its pusher, dismissal of stale approvals
-on new pushes, resolved review conversations, and all six security/CI checks
-from GitHub Actions. Up-to-date checks are required; force pushes and branch
-deletion are blocked. There are no bypass actors. Approvals have been required
-since 2026-10-15; earlier PRs could be merged by their author without review.
+with at least one approval from a reviewer with write access, code-owner review,
+approval of the most recent push by someone other than its pusher, dismissal of
+stale approvals on new pushes, resolved review conversations, and all six
+security/CI checks from GitHub Actions. Up-to-date checks are required; force
+pushes and branch deletion are blocked. There are no bypass actors. Approvals
+have been required since 2026-10-15; earlier PRs could be merged by their author
+without review.
+
+`.github/CODEOWNERS` assigns every path to `@prorpy` and `@SteveSouthwell`, so
+one of them must approve each PR. A second ruleset, `Release tags`, protects
+`refs/tags/v*` from deletion and from being moved, with no bypass actors.
+
+Workflows from fork PRs only run after a maintainer approves them, for all
+external contributors (Settings > Actions > Fork pull request workflows).
 
 Dependency alerts and automated security updates, native secret scanning and
-push protection, and private vulnerability reporting are enabled.
+push protection, and private vulnerability reporting are enabled. The project is
+licensed under the MIT License; see `LICENSE`.
 
 All six required checks run on PRs. Black Duck and Polaris authenticate with
 repository secrets, and Dependabot PRs use separate Dependabot secrets with the
@@ -91,8 +100,8 @@ organization-approved false-positive policy. No blanket ignore list is added.
    other endpoints, missing keys, and unapproved model IDs before LLM scanning.
 5. Run `python scripts/scan_skills.py --mode llm` with the three variables set
    to confirm the gateway accepts the key, then scan every skill with semantic
-   mode before publication. Fork PRs fail closed and need an approved external
-   scan/review path; credentials are never provided through a privileged
+   mode before publication. Fork PRs fail closed and follow the community
+   contribution path below; credentials are never provided through a privileged
    `pull_request_target` workflow.
 
 Gateway authorization was verified on 2026-10-15 in
@@ -210,8 +219,8 @@ Confirm severity thresholds, source-upload support, and remote SAST applicabilit
 with policy owners. The example's Node/VSIX builds and relaxed accuracy settings
 are not used here.
 
-Fork PRs fail closed before checkout and need an approved external scan/review
-path. No credential-bearing `pull_request_target` workflow is introduced.
+Fork PRs fail closed before checkout and follow the community contribution
+path below. No credential-bearing `pull_request_target` workflow is introduced.
 Do not enable a merge queue until vendor checks also support merge-group runs.
 Expected job check names are `Polaris SAST Scan` and `Black Duck SCA Scan`,
 normally published by GitHub Actions (App ID 15368). Verify actual successful
@@ -226,6 +235,64 @@ check depends on the server-side Polaris policy; confirm it with the Polaris own
 
 The Black Duck action downloads Bridge CLI and Detect at run time by version,
 not by hash. These downloads are outside the repository's SHA-pin enforcement.
+
+## Community Contributions
+
+GitHub never passes repository secrets to `pull_request` workflows from forks,
+so the Cisco semantic scan, Polaris and Black Duck fail on fork PRs by design,
+and those PRs cannot be merged directly. The process, also described in
+`CONTRIBUTING.md`, is:
+
+1. A maintainer approves running workflows on the fork PR. Content validation,
+   TruffleHog and the Cisco static scan run without credentials.
+2. A maintainer reviews the change by hand, including helper files, and rejects
+   any change to `.github/`, `scripts/`, pinned dependencies, or scanning
+   configuration from outside contributors.
+3. The maintainer pushes the contributor's commits to an internal branch and
+   opens a new PR, so all six checks run with credentials:
+
+   ```powershell
+   gh pr checkout <fork-pr-number> -b community/<fork-pr-number>
+   git push origin community/<fork-pr-number>
+   gh pr create --base main --head community/<fork-pr-number>
+   ```
+
+4. A code owner other than the maintainer who pushed approves it, and the
+   original fork PR is closed with a link to the internal PR.
+
+Submitted skill text can contain prompt injection aimed at the LLM analyzer.
+Treat the semantic verdict as advisory; the static and behavioral analyzers and
+human review remain the gate.
+
+## Releases
+
+Releases are annotated tags on a commit that is already on `main`, named
+`vMAJOR.MINOR.PATCH`, with an optional pre-release suffix such as
+`v0.1.0-preview.1`. Pushing a `v*` tag runs `.github/workflows/release.yml`,
+which:
+
+1. rejects tags that are not annotated, are not semantic versions, or point to a
+   commit that is not on `main`
+2. re-runs the Cisco static and semantic scans, Black Duck, and Polaris on the
+   tagged commit; Black Duck records the result under a project version named
+   after the tag, and Polaris under a branch named after the tag with `main` as
+   its parent
+3. creates the GitHub Release with generated notes only if every scan passes;
+   tags with a pre-release suffix are published as pre-releases
+
+To publish:
+
+```powershell
+git fetch origin
+git tag -a v1.0.0 -m "ABL Agent Skills 1.0.0" origin/main
+git push origin v1.0.0
+```
+
+If a release scan fails, no release is created. The tag cannot be moved or
+deleted, so fix the problem on `main` and publish the next version.
+
+`npx skills add prgs-profservices/ABL_Agent_Skills` installs the default branch,
+not the latest release. Users who want a fixed version add `#<tag>`.
 
 ## Initial Local Verification
 
@@ -250,7 +317,11 @@ Black Duck and Polaris have not run; no vendor verdict is implied.
 | Secret scanning | TruffleHog PR, push, daily, manual | None |
 | PR-only main | Active ruleset; no bypass actors | None |
 | PR approval | 1 approval, last-push approval, stale dismissal | None |
+| Code owners | `CODEOWNERS` and required code-owner review | None |
+| Fork workflows | Maintainer approval for all external contributors | None |
 | Review resolution | Required by active ruleset | None |
+| Releases | Tag ruleset and scanned release workflow | None |
+| License | MIT | None |
 | Polaris | Pinned workflow and PR feedback | Confirm server policy |
 | Black Duck | Pinned workflow and PR feedback | None |
 | Cisco AI skills | Static hook and semantic CI | Skills to scan |
@@ -263,8 +334,8 @@ files are ignored; ignoring files does not replace secret scanning.
 ## Activate GitHub Controls
 
 1. Obtain the approved scanner configuration, policy thresholds, review count,
-   and ownership requirements. Confirm legal approval and the intended license
-   before adding project content. No license is chosen by this baseline.
+   and ownership requirements. Confirm legal approval before adding project
+   content. The project uses the MIT License.
 2. Establish the initial `main` through an approved, externally reviewed
    bootstrap process. This empty repository has no branch for a normal PR yet.
    The assistant does not commit or push automatically.
@@ -289,9 +360,10 @@ python scripts/configure_github.py `
   --blackduck-check "Actual Black Duck check" --blackduck-app-id 200
 ```
 
-The proposed ruleset requires one approval, approval of the latest push,
-dismissal of stale approvals, resolved review threads, and up-to-date passing
-checks. It prevents deletion and force pushes with no administrator bypass.
+The proposed ruleset requires one approval, code-owner review, approval of the
+latest push, dismissal of stale approvals, resolved review threads, and
+up-to-date passing checks. It prevents deletion and force pushes with no
+administrator bypass.
 The helper also requests dependency alerts/security updates, GitHub native
 secret scanning/push protection, and private vulnerability reporting.
 API operations are not transactional: inspect settings after an error rather
@@ -300,8 +372,8 @@ than blindly retrying. An existing baseline ruleset is never overwritten.
 Verify settings in GitHub and test that direct pushes, failing or missing
 checks, and unresolved conversations block changes. Confirm a real Dependabot
 PR and scheduled scan run. Review organization-level rules as well.
-Add approved code ownership and disclosure contacts when supplied; code-owner
-review is not enabled in the proposed ruleset yet.
+Security reports go through private vulnerability reporting, as described in
+`SECURITY.md`.
 
 ## Scanner Scope and Evidence
 
