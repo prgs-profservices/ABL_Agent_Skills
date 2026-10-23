@@ -35,7 +35,7 @@ def build_ruleset(polaris_check, polaris_app_id, blackduck_check, blackduck_app_
                 "parameters": {
                     "required_approving_review_count": 1,
                     "dismiss_stale_reviews_on_push": True,
-                    "require_code_owner_review": False,
+                    "require_code_owner_review": True,
                     "require_last_push_approval": True,
                     "required_review_thread_resolution": True,
                 },

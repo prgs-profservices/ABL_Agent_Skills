@@ -2,6 +2,26 @@
 
 Agent skills and documentation for OpenEdge ABL.
 
+## Installing Skills
+
+Install from a release to get a fixed, scanned version:
+
+```bash
+npx skills add prgs-profservices/ABL_Agent_Skills#<release-tag>
+```
+
+Without a tag, `npx skills add prgs-profservices/ABL_Agent_Skills` installs the
+latest commit on `main`. Everything on `main` has passed the required scans and
+review, but it may contain changes that are not yet in a release. See the
+[releases](https://github.com/prgs-profservices/ABL_Agent_Skills/releases) for
+available versions.
+
+## Contributing and Security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to add a skill, and
+[SECURITY.md](SECURITY.md) to report a problem privately. This project is
+licensed under the [MIT License](LICENSE).
+
 ## Development
 
 Use Python 3.13 and Git:
@@ -21,7 +41,7 @@ with `--files` and the candidate filenames instead of `--all-files`.
 Cisco Skill Scanner runs statically in pre-commit and Linux CI, with a separate
 Nuclia semantic check for PRs and pre-publication scans. It scans all Git-visible
 `SKILL.md` directories, including helper files. Empty scope is reported explicitly.
-Scanner 2.1.0 does not support Windows ARM64 hosts, even with emulated x64 Python;
+The scanner does not support Windows ARM64 hosts, even with emulated x64 Python;
 VMware Fusion does not change that Windows guest limitation. Native macOS ARM64
 or a Linux ARM64 VM is supported. Use a separate checkout and virtual environment
 for each OS rather than sharing the Windows venv or bypassing the hook.
