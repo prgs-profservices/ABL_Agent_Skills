@@ -4,7 +4,10 @@ Agent skills and documentation for OpenEdge ABL.
 
 ## Installing Skills
 
-Install from a release to get a fixed, scanned version:
+### Option A: `npx` (requires Node.js)
+
+`npx` runs a package without requiring a global install. Install from a release
+to get a fixed, scanned version:
 
 ```bash
 npx skills add prgs-profservices/ABL_Agent_Skills#<release-tag>
@@ -15,6 +18,20 @@ latest commit on `main`. Everything on `main` has passed the required scans and
 review, but it may contain changes that are not yet in a release. See the
 [releases](https://github.com/prgs-profservices/ABL_Agent_Skills/releases) for
 available versions.
+
+### Option B: Manual install from clone (symlink or copy)
+
+Clone this repository, then symlink or copy the desired skill directory from
+`skills/` into the location where your target project loads skills. For example,
+replace these paths with your local checkout and the skills directory used by
+your agent:
+
+```bash
+git clone https://github.com/prgs-profservices/ABL_Agent_Skills.git /path/to/ABL_Agent_Skills
+ln -s /path/to/ABL_Agent_Skills/skills/<skill-name> /path/to/target-project/<skills-directory>/<skill-name>
+```
+
+This option does not require Node.js.
 
 ## Contributing and Security
 
