@@ -37,7 +37,9 @@ This option does not require Node.js.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to add a skill, and
 [SECURITY.md](SECURITY.md) to report a problem privately. This project is
-licensed under the [MIT License](LICENSE).
+licensed under the [Apache License 2.0](LICENSE); see also [NOTICE](NOTICE).
+Each skill directory contains its own copies as `LICENSE.txt` and `NOTICE.txt`,
+so installed skills keep their license terms.
 
 ## Development
 

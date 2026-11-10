@@ -11,10 +11,22 @@ Create one directory per skill under `skills/`:
 skills/
   my-skill-name/
     SKILL.md
+    LICENSE.txt    (exact copy of the repository LICENSE)
+    NOTICE.txt     (exact copy of the repository NOTICE)
     (optional helper files)
 ```
 
-`SKILL.md` starts with YAML frontmatter, followed by the instructions:
+Every skill carries its own license files because tools such as
+`npx skills add` install only the skill's directory, not the repository root.
+Copy them unchanged:
+
+```bash
+cp LICENSE skills/my-skill-name/LICENSE.txt
+cp NOTICE skills/my-skill-name/NOTICE.txt
+```
+
+`SKILL.md` starts with YAML frontmatter, followed by the license header as an
+HTML comment, followed by the instructions:
 
 ```markdown
 ---
@@ -22,15 +34,42 @@ name: my-skill-name
 description: One or two sentences on what the skill does and when to use it.
 ---
 
+<!--
+my-skill-name: One line describing the purpose of the skill.
+
+Copyright 2026 Progress Software Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 Instructions for the agent.
 ```
 
-The validator enforces these rules:
+Code files in the skill directory (`.py`, `.sh`, `.ps1`, `.js`, `.ts`, and ABL
+`.p`, `.w`, `.cls`, `.i`) start with the same header in that language's comment
+syntax, for example `#` lines in Python or a `/* ... */` block in ABL.
+
+The validator enforces these rules on every PR:
 
 - `name` uses lowercase letters, numbers and hyphens, is at most 64 characters,
   and matches the directory name.
 - `description` is not empty and is at most 1024 characters.
-- There are instructions after the frontmatter.
+- The license header comment directly follows the frontmatter and contains a
+  `Copyright <year> <owner>` line and the Apache License 2.0 notice.
+- There are instructions after the header.
+- `LICENSE.txt` and `NOTICE.txt` exist and are exact copies of the repository
+  `LICENSE` and `NOTICE`.
+- Code files in the skill directory contain the license header.
 - Symlinks are not allowed.
 
 Keep helper files to what the skill needs. Do not include secrets, credentials,
@@ -73,5 +112,11 @@ created.
 
 ## License
 
-By contributing, you agree that your contribution is licensed under the
-[MIT License](LICENSE).
+This project is licensed under the [Apache License 2.0](LICENSE); see also
+[NOTICE](NOTICE). Under Section 5 of the License, any contribution you
+intentionally submit for inclusion in this project is provided under the terms
+of the Apache License 2.0, without any additional terms or conditions, unless
+you explicitly state otherwise.
+
+Progress Software Corporation, as the licensor, decides whether a contribution
+is incorporated. Opening a PR does not guarantee that it will be merged.

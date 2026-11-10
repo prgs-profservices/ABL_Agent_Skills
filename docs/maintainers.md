@@ -104,6 +104,24 @@ The scans help, but your review is the real gate. Check:
 - [ ] The three secret-free checks pass: `Content validation`,
       `TruffleHog secret scan` and `Cisco skill static scan`.
 - [ ] The contributor ticked the license box in the PR template.
+- [ ] The `Copyright` line in each header names the right owner. The template
+      uses Progress Software Corporation; if a contributor puts their own name,
+      check with legal before merging.
+
+The license header and the `LICENSE.txt`/`NOTICE.txt` copies are checked by
+`Content validation`, so you don't need to compare them by hand.
+
+### Changing LICENSE or NOTICE
+
+The validator requires every skill's `LICENSE.txt` and `NOTICE.txt` to match
+the root files exactly. If `NOTICE` ever changes, update every skill's copy in
+the same PR:
+
+```powershell
+Get-ChildItem skills -Directory | ForEach-Object {
+  Copy-Item NOTICE (Join-Path $_.FullName NOTICE.txt)
+}
+```
 
 ### Step 3: Move it to an internal PR
 

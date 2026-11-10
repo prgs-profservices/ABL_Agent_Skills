@@ -1,5 +1,5 @@
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import sys
@@ -8,6 +8,10 @@ import yaml
 
 
 COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
+LICENSE_MARKER = 'Licensed under the Apache License, Version 2.0 (the "License");'
+COPYRIGHT_LINE = re.compile(r"^Copyright \d{4} \S.*$", re.MULTILINE)
+SKILL_CODE_SUFFIXES = {".cls", ".i", ".js", ".p", ".ps1", ".py", ".sh", ".ts", ".w"}
+CONTENT_SUFFIXES = {".json", ".md", ".yaml", ".yml"}
 
 
 def validate_reference(reference):
@@ -60,13 +64,37 @@ def validate_skill(text, directory_name):
     description = metadata.get("description")
     if not isinstance(description, str) or not description.strip() or len(description) > 1024:
         raise ValueError("Skills must have a nonempty description of at most 1024 characters")
-    if not "\n".join(lines[closing + 1:]).strip():
-        raise ValueError("Skills must contain instructions after their frontmatter")
+    body = "\n".join(lines[closing + 1:]).lstrip()
+    if not body.startswith("<!--") or "-->" not in body:
+        raise ValueError("SKILL.md must have the Apache License 2.0 header comment right after its frontmatter")
+    header, instructions = body[4:].split("-->", 1)
+    if LICENSE_MARKER not in header or not COPYRIGHT_LINE.search(header):
+        raise ValueError("The SKILL.md header must contain a Copyright line and the Apache License 2.0 notice")
+    if not instructions.strip():
+        raise ValueError("Skills must contain instructions after their license header")
 
 
-def validate_file(path, root):
+def validate_skill_license_files(directory, root):
+    for bundled, original in (("LICENSE.txt", "LICENSE"), ("NOTICE.txt", "NOTICE")):
+        copy = directory / bundled
+        if not copy.is_file() or copy.read_text(encoding="utf-8") != (root / original).read_text(encoding="utf-8"):
+            raise ValueError(f"Skills must include {bundled} as an exact copy of the repository {original}")
+
+
+def validate_skill_code(text):
+    if LICENSE_MARKER not in text or not COPYRIGHT_LINE.search(re.sub(r"^\W+", "", text, flags=re.MULTILINE)):
+        raise ValueError("Code files in skills must start with the Apache License 2.0 header")
+
+
+def skill_directories(names):
+    return {PurePosixPath(name).parent for name in names if PurePosixPath(name).name == "SKILL.md"}
+
+
+def validate_file(path, root, skills=frozenset()):
     relative = path.relative_to(root).as_posix()
     text = path.read_text(encoding="utf-8")
+    if path.suffix.lower() in SKILL_CODE_SUFFIXES and any(PurePosixPath(relative).is_relative_to(s) for s in skills):
+        validate_skill_code(text)
     if path.suffix in (".yaml", ".yml"):
         document = yaml.safe_load(text)
         if relative.startswith(".github/workflows/"):
@@ -77,6 +105,7 @@ def validate_file(path, root):
         json.loads(text)
     if path.name == "SKILL.md":
         validate_skill(text, path.parent.name)
+        validate_skill_license_files(path.parent, root)
 
 
 def main():
@@ -87,12 +116,14 @@ def main():
     )
     errors = []
     checked = 0
-    for name in sorted(set(result.stdout.decode("utf-8").split("\0")) - {""}):
+    names = sorted(set(result.stdout.decode("utf-8").split("\0")) - {""})
+    skills = skill_directories(names)
+    for name in names:
         path = root / name
-        if not path.is_file() or path.suffix not in (".yaml", ".yml", ".json", ".md"):
+        if not path.is_file() or path.suffix.lower() not in CONTENT_SUFFIXES | SKILL_CODE_SUFFIXES:
             continue
         try:
-            validate_file(path, root)
+            validate_file(path, root, skills)
             checked += 1
         except (ValueError, yaml.YAMLError, OSError) as error:
             errors.append(f"{name}: {error}")

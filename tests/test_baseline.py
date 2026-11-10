@@ -1,7 +1,21 @@
+from pathlib import Path, PurePosixPath
+import tempfile
 import unittest
 
-from scripts.validate_baseline import validate_hooks, validate_reference, validate_skill, validate_workflow
+from scripts.validate_baseline import (
+    LICENSE_MARKER,
+    validate_file,
+    validate_hooks,
+    validate_reference,
+    validate_skill,
+    validate_skill_code,
+    validate_skill_license_files,
+    validate_workflow,
+)
 from scripts.configure_github import build_ruleset
+
+HEADER = f"Copyright 2026 Progress Software Corporation\n\n{LICENSE_MARKER}\n"
+SKILL = f"---\nname: test-skill\ndescription: Test skill\n---\n\n<!--\ntest-skill\n\n{HEADER}-->\n\nInstructions\n"
 
 
 class BaselineTests(unittest.TestCase):
@@ -35,15 +49,67 @@ class BaselineTests(unittest.TestCase):
         validate_hooks({"repos": [{"repo": "local"}]})
 
     def test_valid_skill(self):
-        validate_skill("---\nname: test-skill\ndescription: Test skill\n---\nInstructions\n", "test-skill")
+        validate_skill(SKILL, "test-skill")
 
     def test_skill_without_description_rejected(self):
         with self.assertRaises(ValueError):
-            validate_skill("---\nname: test-skill\n---\nInstructions\n", "test-skill")
+            validate_skill(SKILL.replace("description: Test skill\n", ""), "test-skill")
 
     def test_skill_directory_mismatch_rejected(self):
         with self.assertRaises(ValueError):
-            validate_skill("---\nname: test-skill\ndescription: Test\n---\nInstructions\n", "other")
+            validate_skill(SKILL, "other")
+
+    def test_skill_without_header_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_skill("---\nname: test-skill\ndescription: Test skill\n---\nInstructions\n", "test-skill")
+
+    def test_skill_header_without_copyright_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_skill(SKILL.replace("Copyright 2026 Progress Software Corporation\n", ""), "test-skill")
+
+    def test_skill_header_without_license_notice_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_skill(SKILL.replace(LICENSE_MARKER, "All rights reserved."), "test-skill")
+
+    def test_skill_without_instructions_after_header_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_skill(SKILL.replace("Instructions\n", ""), "test-skill")
+
+    def test_skill_code_needs_header(self):
+        with self.assertRaises(ValueError):
+            validate_skill_code("import os\n")
+        validate_skill_code("# " + HEADER.replace("\n", "\n# ") + "\nimport os\n")
+        validate_skill_code("/* " + HEADER + "*/\nDISPLAY 'hi'.\n")
+
+    def test_only_code_inside_skills_needs_header(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "scripts").mkdir()
+            (root / "scripts" / "tool.py").write_text("import os\n", encoding="utf-8")
+            (root / "skills" / "test-skill" / "assets").mkdir(parents=True)
+            (root / "skills" / "test-skill" / "assets" / "data.md").write_text("data\n", encoding="utf-8")
+            (root / "skills" / "test-skill" / "run.py").write_text("import os\n", encoding="utf-8")
+            skills = {PurePosixPath("skills/test-skill")}
+            validate_file(root / "scripts" / "tool.py", root, skills)
+            validate_file(root / "skills" / "test-skill" / "assets" / "data.md", root, skills)
+            with self.assertRaises(ValueError):
+                validate_file(root / "skills" / "test-skill" / "run.py", root, skills)
+
+    def test_skill_license_files_must_match_repository(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "LICENSE").write_text("license text\n", encoding="utf-8")
+            (root / "NOTICE").write_text("notice text\n", encoding="utf-8")
+            skill = root / "skills" / "test-skill"
+            skill.mkdir(parents=True)
+            with self.assertRaises(ValueError):
+                validate_skill_license_files(skill, root)
+            (skill / "LICENSE.txt").write_text("license text\n", encoding="utf-8")
+            (skill / "NOTICE.txt").write_text("changed notice\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                validate_skill_license_files(skill, root)
+            (skill / "NOTICE.txt").write_text("notice text\n", encoding="utf-8")
+            validate_skill_license_files(skill, root)
 
     def test_ruleset_enforces_pr_and_security_checks(self):
         ruleset = build_ruleset("Polaris policy", 100, "Black Duck policy", 200)
