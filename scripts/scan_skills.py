@@ -125,11 +125,11 @@ def validate_report(report, mode):
     return dict(counts), bool(counts) or not report["is_safe"]
 
 
-def scan_skill(snapshot, report_path, mode, environment):
+def scan_skill(snapshot, report_path, mode, environment, policy):
     command = [
         sys.executable, "-m", "skill_scanner.cli.cli", "scan", str(snapshot),
         "--format", "json", "--output", str(report_path),
-        "--policy", "strict", "--fail-on-severity", "info", "--verbose",
+        "--policy", str(policy), "--fail-on-severity", "info", "--verbose",
     ]
     if mode == "llm":
         command.extend(["--use-llm", "--use-behavioral", "--enable-meta"])
@@ -177,6 +177,9 @@ def main():
             return 0
         if sys.version_info < (3, 13):
             raise ValueError("Organization policy requires Python 3.13+ for skill scanning")
+        policy = (root / "scan-policy.yaml").resolve()
+        if not policy.is_file():
+            raise ValueError("The Cisco scan policy file scan-policy.yaml is missing")
         version = importlib.metadata.version("cisco-ai-skill-scanner")
         with tempfile.TemporaryDirectory(prefix="abl-skill-scan-") as temporary:
             workspace = Path(temporary)
@@ -187,7 +190,7 @@ def main():
             for index, skill in enumerate(skills, 1):
                 snapshot = workspace / f"skill-{index}"
                 stage_skill(root, files, skill, snapshot)
-                counts, failed = scan_skill(snapshot, reports / f"skill-{index}.json", arguments.mode, environment)
+                counts, failed = scan_skill(snapshot, reports / f"skill-{index}.json", arguments.mode, environment, policy)
                 total.update(counts)
                 blocked = blocked or failed
             print(f"Cisco Skill Scanner {version}: mode={arguments.mode}; skills={len(skills)}; findings={sum(total.values())}")
