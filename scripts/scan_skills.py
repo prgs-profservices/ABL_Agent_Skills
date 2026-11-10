@@ -107,8 +107,9 @@ def validate_report(report, mode):
     analyzers = report.get("analyzers_used")
     if not isinstance(analyzers, list) or not all(isinstance(name, str) for name in analyzers):
         raise ValueError("Scanner report lacks analyzer execution evidence")
+    normalized = {name.removesuffix("_analyzer") for name in analyzers}
     required = {"static"} if mode == "static" else {"static", "behavioral", "llm"}
-    if not required.issubset(analyzers):
+    if not required.issubset(normalized):
         raise ValueError("A required analyzer did not run")
     if not isinstance(report.get("is_safe"), bool):
         raise ValueError("Scanner report lacks a safety verdict")
@@ -119,7 +120,7 @@ def validate_report(report, mode):
         counts[finding["severity"]] += 1
     if report.get("findings_count") != len(report["findings"]):
         raise ValueError("Scanner finding count does not match the structured report")
-    if mode == "llm" and counts and "meta_analyzer" not in analyzers:
+    if mode == "llm" and counts and "meta" not in normalized:
         raise ValueError("Requested meta-analysis did not complete")
     return dict(counts), bool(counts) or not report["is_safe"]
 
