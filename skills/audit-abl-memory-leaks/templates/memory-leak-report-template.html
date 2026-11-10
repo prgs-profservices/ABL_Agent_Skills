@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8' />
+<meta name='viewport' content='width=device-width, initial-scale=1.0' />
+<title>ABL Memory Leak Risk Report</title>
+<style>
+:root { --bg:#f6f8fc; --card:#fff; --ink:#1f2937; --muted:#6b7280; --line:#dce3f1; --accent:#0f766e; --high:#b91c1c; --med:#92400e; --low:#1d4ed8; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: Segoe UI, Tahoma, sans-serif; color:var(--ink); background:var(--bg); }
+.wrap { max-width: 1500px; margin: 24px auto; padding: 0 16px; }
+.hero { background: linear-gradient(120deg,#0f766e,#1d4ed8); color:#fff; border-radius:12px; padding:20px; }
+.hero h1 { margin:0 0 8px; font-size:1.7rem; }
+.meta { opacity:.95; font-size:.95rem; }
+.cards { margin-top:14px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+.card { background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:10px; }
+.card h3 { margin:0 0 6px; color:var(--muted); font-size:.76rem; text-transform:uppercase; }
+.value { font-size:1.4rem; font-weight:700; }
+.panel { margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
+.search { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; margin-bottom:10px; font-size:14px; }
+table { width:100%; border-collapse:collapse; font-size:.88rem; }
+th, td { border:1px solid var(--line); padding:8px; vertical-align:top; text-align:left; }
+th { background:#eff4ff; position: sticky; top: 0; z-index: 1; }
+code { background:#f1f5f9; padding:2px 4px; border-radius:4px; }
+.sev-high td:nth-child(4) { color:var(--high); font-weight:700; }
+.sev-medium td:nth-child(4) { color:var(--med); font-weight:700; }
+.sev-low td:nth-child(4) { color:var(--low); font-weight:700; }
+.filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.filters input, .filters select { padding:8px; border:1px solid var(--line); border-radius:6px; }
+.filters input { flex:1; min-width:220px; }
+ul { margin: 8px 0 0 18px; }
+</style>
+</head>
+<body>
+<div class='wrap'>
+<section class='hero'>
+<h1>ABL Memory Leak Risk Audit</h1>
+<div class='meta'>Workspace: {{WORKSPACE}} | Generated: {{GENERATED_AT}}</div>
+<div class='meta'>Scope: {{SCOPE_DISPLAY}}</div>
+</section>
+<section class='cards'>
+{{SUMMARY_CARDS}}
+</section>
+<section class='panel'>
+<strong>Category Summary</strong>
+<ul>{{CATEGORY_SUMMARY}}</ul>
+</section>
+<section class='panel'>
+<div class='filters'>
+  <input id='search' type='text' placeholder='Filter by file, category, symbol, rationale, or evidence...' />
+  <select id='severity'>
+    <option value=''>All severities</option>
+    <option value='High'>High</option>
+    <option value='Medium'>Medium</option>
+    <option value='Low'>Low</option>
+  </select>
+</div>
+<table id='results'>
+<thead><tr><th>File</th><th>Line</th><th>Category</th><th>Severity</th><th>Symbol</th><th>Confidence</th><th>Widget Pool Context</th><th>Rationale</th><th>Evidence</th></tr></thead>
+<tbody>
+{{ROWS_HTML}}
+</tbody>
+</table>
+</section>
+</div>
+<script>
+const search = document.getElementById('search');
+const severity = document.getElementById('severity');
+const rows = Array.from(document.querySelectorAll('#results tbody tr'));
+
+function applyFilters() {
+  const q = (search.value || '').toLowerCase();
+  const s = severity.value || '';
+  rows.forEach(r => {
+    const rowSeverity = r.getAttribute('data-severity') || '';
+    const txt = r.textContent.toLowerCase();
+    const show = (!q || txt.includes(q)) && (!s || rowSeverity === s);
+    r.style.display = show ? '' : 'none';
+  });
+}
+
+search.addEventListener('input', applyFilters);
+severity.addEventListener('change', applyFilters);
+</script>
+</body>
+</html>

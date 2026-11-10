@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8' />
+<meta name='viewport' content='width=device-width, initial-scale=1.0' />
+<title>{{PAGE_TITLE}}</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Segoe UI,Arial,sans-serif;padding:20px;background:#f5f5f5;color:#17202a;margin:0}
+.container{max-width:1400px;margin:0 auto;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:30px;border-radius:8px 8px 0 0}
+header h1{font-size:1.8em;margin:0;font-weight:700}
+header p{opacity:.9;font-size:.95em;margin:6px 0 0 0}
+.report-body{padding:20px}
+h1,h2{margin:0 0 8px 0}
+.card{background:#fff;border:1px solid #d7e0ea;border-radius:10px;padding:12px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.metric{font-size:1.5rem;font-weight:700}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{border:1px solid #d7e0ea;padding:5px 6px;vertical-align:top}
+#mainTable th{position:sticky;top:0;background:#eef3f8;cursor:pointer;user-select:none;white-space:nowrap}
+#mainTable th:hover{background:#dce8f5}
+#mainTable th.sort-asc::after{content:' \25B2'}
+#mainTable th.sort-desc::after{content:' \25BC'}
+#depTable th{cursor:pointer;user-select:none;white-space:nowrap;background:#eef3f8}
+#depTable th:hover{background:#dce8f5}
+#depTable th.sort-asc::after{content:' \25B2'}
+#depTable th.sort-desc::after{content:' \25BC'}
+.opaque td,.unresolved td{border-left:4px solid #e05;background:#fef5f5}
+.ungated-risk td{border-left:4px solid #e07b00;background:#fff4e5}
+.filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0}
+.filter-row input[type=text],.filter-row input:not([type=checkbox]){flex:1;min-width:130px;padding:6px 8px;border:1px solid #c8d3e1;border-radius:6px}
+.filter-row select{padding:6px 8px;border:1px solid #c8d3e1;border-radius:6px;background:#fff}
+.filter-row label{display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:13px}
+.run-meta{font-size:13px;color:#555;margin:4px 0 10px 0}
+button{padding:6px 13px;border:1px solid #c8d3e1;border-radius:6px;background:#eef3f8;cursor:pointer}
+button:hover{background:#dce8f5}
+#rowCount{font-size:12px;color:#555;white-space:nowrap}
+</style>
+<script>
+var _sortCol=-1,_sortDir=1;
+var _depSortCol=0,_depSortDir=1;
+var _basicCmds=new Set({{BASIC_COMMANDS_JSON}});
+var _openEdgeCmds=new Set({{OPENEDGE_COMMANDS_JSON}});
+
+function sortTable(col){
+  var tbody=document.querySelector('#mainTable tbody');
+  var rows=Array.from(tbody.querySelectorAll('tr'));
+  if(_sortCol===col){_sortDir*=-1;}else{_sortDir=1;}
+  _sortCol=col;
+  rows.sort(function(a,b){
+    var av=a.cells[col]?a.cells[col].innerText.trim():'';
+    var bv=b.cells[col]?b.cells[col].innerText.trim():'';
+    var an=parseFloat(av),bn=parseFloat(bv);
+    if(!isNaN(an)&&!isNaN(bn))return(an-bn)*_sortDir;
+    return av.localeCompare(bv)*_sortDir;
+  });
+  rows.forEach(function(r){tbody.appendChild(r);});
+  document.querySelectorAll('#mainTable thead th').forEach(function(th,i){
+    th.classList.remove('sort-asc','sort-desc');
+    if(i===col)th.classList.add(_sortDir===1?'sort-asc':'sort-desc');
+  });
+}
+
+function sortDepTable(col){
+  if(_depSortCol===col){_depSortDir*=-1;}else{_depSortCol=col;_depSortDir=col===1||col===2?-1:1;}
+  document.querySelectorAll('#depTable thead th').forEach(function(th,i){
+    th.classList.remove('sort-asc','sort-desc');
+    if(i===col)th.classList.add(_depSortDir===1?'sort-asc':'sort-desc');
+  });
+  refreshDependencyList();
+}
+
+function getSelectedPlatforms(){
+  var selected=new Set();
+  if(document.getElementById('showWindows').checked)selected.add('windows');
+  if(document.getElementById('showLinux').checked)selected.add('linux');
+  if(document.getElementById('showBoth').checked)selected.add('both');
+  if(document.getElementById('showUnknown').checked)selected.add('unknown');
+  return selected;
+}
+
+function getColumnIndexByHeader(label){
+  var headers=Array.from(document.querySelectorAll('#mainTable thead th'));
+  for(var i=0;i<headers.length;i++){
+    if(headers[i].innerText.trim().toLowerCase()===label.toLowerCase()) return i;
+  }
+  return -1;
+}
+
+function refreshDependencyList(){
+  var depBody=document.getElementById('depTableBody');
+  if(!depBody) return;
+
+  var visibleRows=Array.from(document.querySelectorAll('#mainTable tbody tr')).filter(function(tr){return tr.style.display!== 'none';});
+  var concernIdx=getColumnIndexByHeader('{{CONCERN_LABEL}}'.toLowerCase());
+  var cmdMap=new Map();
+  var uniqueFound=new Set();
+
+  visibleRows.forEach(function(tr){
+    var cmd=tr.cells[3]?tr.cells[3].innerText.trim().toLowerCase():'';
+    if(!cmd) return;
+    uniqueFound.add(cmd);
+    if(_basicCmds.has(cmd) || _openEdgeCmds.has(cmd)) return;
+
+    var file=tr.cells[0]?tr.cells[0].innerText.trim():'';
+    var line=tr.cells[1]?tr.cells[1].innerText.trim():'';
+    if(!cmdMap.has(cmd)){
+      cmdMap.set(cmd,{hits:0,files:new Set(),examples:[],concern:'',platforms:new Set()});
+    }
+    var item=cmdMap.get(cmd);
+    var plt=tr.dataset.platform||'unknown';
+    item.hits+=1;
+    item.platforms.add(plt);
+    if(file)item.files.add(file);
+    if(file && line && item.examples.length<3){
+      item.examples.push(file+':'+line);
+    }
+    if(concernIdx>=0 && !item.concern){
+      var c=tr.cells[concernIdx]?tr.cells[concernIdx].innerText.trim():'';
+      if(c)item.concern=c;
+    }
+  });
+
+  document.getElementById('depUniqueFound').textContent=String(uniqueFound.size);
+  document.getElementById('depUniqueDisplayed').textContent=String(cmdMap.size);
+
+  depBody.innerHTML='';
+  var rows=Array.from(cmdMap.entries()).sort(function(a,b){
+    var col=_depSortCol,dir=_depSortDir;
+    var av,bv;
+    if(col===0){av=a[0];bv=b[0];return av.localeCompare(bv)*dir;}
+    if(col===1){return(a[1].hits-b[1].hits)*dir;}
+    if(col===2){return(a[1].files.size-b[1].files.size)*dir;}
+    if(col===3){av=Array.from(a[1].platforms).sort().join(',');bv=Array.from(b[1].platforms).sort().join(',');return av.localeCompare(bv)*dir;}
+    if(col===4){av=a[1].examples.join('; ');bv=b[1].examples.join('; ');return av.localeCompare(bv)*dir;}
+    if(col===5){av=a[1].concern||'';bv=b[1].concern||'';return av.localeCompare(bv)*dir;}
+    return 0;
+  });
+
+  rows.forEach(function(entry){
+    var cmd=entry[0];
+    var item=entry[1];
+    var tr=document.createElement('tr');
+    var pltStr=Array.from(item.platforms).sort().join(',');
+    tr.innerHTML='<td>'+escapeHtml(cmd)+'</td><td>'+item.hits+'</td><td>'+item.files.size+'</td><td>'+escapeHtml(pltStr)+'</td><td>'+escapeHtml(item.examples.join('; '))+'</td><td>'+escapeHtml(item.concern||'')+'</td>';
+    depBody.appendChild(tr);
+  });
+}
+
+function escapeHtml(value){
+  var div=document.createElement('div');
+  div.innerText=value||'';
+  return div.innerHTML;
+}
+
+function applyFilters(){
+  var q=document.getElementById('q').value.toLowerCase();
+  var tF=document.getElementById('typeFilter').value.toLowerCase();
+  var cF=document.getElementById('cmdFilter').value.toLowerCase();
+  var eB=document.getElementById('excludeBasic').checked;
+  var eO=document.getElementById('excludeOpenEdge').checked;
+  var uROnly=document.getElementById('showOnlyUngatedRisk').checked;
+  var selectedPlatforms=getSelectedPlatforms();
+  var shown=0;
+
+  document.querySelectorAll('#mainTable tbody tr').forEach(function(tr){
+    var cmd=tr.cells[3]?tr.cells[3].innerText.trim().toLowerCase():'';
+    var type=tr.cells[2]?tr.cells[2].innerText.trim().toLowerCase():'';
+    var platform=tr.cells[4]?tr.cells[4].innerText.trim().toLowerCase():'unknown';
+    var ok=true;
+
+    if(q && !tr.innerText.toLowerCase().includes(q)) ok=false;
+    if(tF && type!==tF) ok=false;
+    if(cF && !cmd.includes(cF)) ok=false;
+    if(eB && _basicCmds.has(cmd)) ok=false;
+    if(eO && _openEdgeCmds.has(cmd)) ok=false;
+    if(uROnly && !tr.classList.contains('ungated-risk')) ok=false;
+    if(!selectedPlatforms.has(platform)) ok=false;
+
+    tr.style.display=ok?'':'none';
+    if(ok)shown++;
+  });
+
+  document.getElementById('rowCount').textContent=shown+' rows shown';
+  refreshDependencyList();
+}
+
+function clearFilters(){
+  ['q','cmdFilter'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('typeFilter').value='';
+  document.getElementById('excludeBasic').checked=false;
+  document.getElementById('excludeOpenEdge').checked=false;
+  document.getElementById('showOnlyUngatedRisk').checked=false;
+  document.getElementById('showWindows').checked=true;
+  document.getElementById('showLinux').checked=true;
+  document.getElementById('showBoth').checked=true;
+  document.getElementById('showUnknown').checked=true;
+  applyFilters();
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+  applyFilters();
+});
+</script>
+</head>
+<body>
+<div class='container'>
+<header>
+  <div style='display:flex;align-items:center;gap:20px;'>
+    <img src='{{LOGO_DATA_URI}}' alt='Progress Logo' style='height:60px;'>
+    <div style='flex:1;'>
+      <div style='font-size:0.9em;opacity:0.9;margin-bottom:5px;'>Progress Professional Services</div>
+      <h1>{{PAGE_TITLE}}</h1>
+      <p>Generated: {{GENERATED_AT}} &nbsp;&bull;&nbsp; Scope: {{SCOPE_DISPLAY}} &nbsp;&bull;&nbsp; Client mode: {{WINDOW_SYSTEM_LABEL}}</p>
+    </div>
+  </div>
+</header>
+<div class='report-body'>
+<div class='card grid'>
+  <div><div>Total Sites</div><div class='metric'>{{TOTAL}}</div></div>
+  <div><div>OpenEdge Utility Sites</div><div class='metric'>{{OPENEDGE_UTILITY_SITES}}</div></div>
+  <div><div>Basic Unix Sites</div><div class='metric'>{{BASIC_UNIX_SITES}}</div></div>
+  <div><div>Windows Sites</div><div class='metric'>{{WINDOWS_SITES}}</div></div>
+  <div><div>{{PLATFORM_LABEL}}</div><div class='metric'>{{LINUX_SITES}}</div></div>
+  <div><div>Both Platforms</div><div class='metric'>{{BOTH_SITES}}</div></div>
+  <div><div>Unknown Sites</div><div class='metric'>{{UNKNOWN_SITES}}</div></div>
+  <div><div>Ungated Risks</div><div class='metric' style='color:#e07b00'>{{UNGATED_RISK_SITES}}</div></div>
+  <div><div>With Concerns</div><div class='metric'>{{CONCERNS}}</div></div>
+  <div><div>Excluded Comments</div><div class='metric'>{{EXCLUDED_COMMENTS}}</div></div>
+  <div><div>Suppressed (dead code)</div><div class='metric'>{{SUPPRESSED_ROWS}}</div></div>
+</div>
+<nav class='card' style='padding:8px 12px;'>
+  <strong>Jump to:</strong>
+  &nbsp;<a href='#dep-section'>Command Dependencies</a>
+  &nbsp;&bull;&nbsp;<a href='#audit-section'>Full Audit Table</a>
+</nav>
+<div id='dep-section' class='card'>
+  <h2>Distinct Non-Baseline Command Dependencies</h2>
+  <p>Unique commands found: <span id='depUniqueFound'>{{ALL_UNIQUE_COMMANDS_COUNT}}</span>. Unique commands displayed: <span id='depUniqueDisplayed'>{{DISTINCT_DEPENDENCIES_COUNT}}</span>. Native baseline commands (Unix or Windows, depending on target platform) and OpenEdge utilities are excluded from this section. Commands with known migration notes are annotated; blank Migration Note means no specific concern is recorded.</p>
+  <table id='depTable'>
+    <thead>
+      <tr><th onclick='sortDepTable(0)' class='sort-asc'>Command</th><th onclick='sortDepTable(1)'>Hits</th><th onclick='sortDepTable(2)'>Files</th><th onclick='sortDepTable(3)'>Platform</th><th onclick='sortDepTable(4)'>Example Sites</th><th onclick='sortDepTable(5)'>Migration Note</th></tr>
+    </thead>
+    <tbody id='depTableBody'>
+{{DEPENDENCY_ROWS}}
+    </tbody>
+  </table>
+</div>
+<div class='card'>
+  <div class='filter-row'>
+    <input type='text' id='q' placeholder='Search all columns...' oninput='applyFilters()' />
+    <select id='typeFilter' onchange='applyFilters()'><option value=''>All types</option><option>UNIX SILENT</option><option>DOS SILENT</option><option>OS-COMMAND</option><option>INPUT THROUGH</option><option>OUTPUT THROUGH</option></select>
+    <input type='text' id='cmdFilter' placeholder='Filter by command...' oninput='applyFilters()' />
+    <label><input type='checkbox' id='showWindows' checked onchange='applyFilters()' />&nbsp;Show windows</label>
+    <label><input type='checkbox' id='showLinux' checked onchange='applyFilters()' />&nbsp;Show linux</label>
+    <label><input type='checkbox' id='showBoth' checked onchange='applyFilters()' />&nbsp;Show both</label>
+    <label><input type='checkbox' id='showUnknown' checked onchange='applyFilters()' />&nbsp;Show unknown</label>
+    <label><input type='checkbox' id='showOnlyUngatedRisk' onchange='applyFilters()' />&nbsp;Only ungated risks &#9888;</label>
+    <label><input type='checkbox' id='excludeBasic' onchange='applyFilters()' />&nbsp;Exclude basic unix</label>
+    <label><input type='checkbox' id='excludeOpenEdge' onchange='applyFilters()' />&nbsp;Exclude OpenEdge utilities</label>
+    <button type='button' onclick='clearFilters()'>Clear All</button>
+    <span id='rowCount'>{{TOTAL_ROWS}} rows shown</span>
+  </div>
+</div>
+<div id='audit-section' class='card'>
+<table id='mainTable'>
+<thead>
+<tr>
+  <th onclick='sortTable(0)'>File</th>
+  <th onclick='sortTable(1)'>Line</th>
+  <th onclick='sortTable(2)'>Type</th>
+  <th onclick='sortTable(3)'>Cmd</th>
+  <th onclick='sortTable(4)'>Platform</th>
+  {{MODE_SPECIFIC_COLUMNS}}
+</tr>
+</thead>
+<tbody>
+{{TABLE_ROWS}}
+</tbody>
+</table>
+</div>
+</div><!-- /report-body -->
+</div><!-- /container -->
+</body>
+</html>

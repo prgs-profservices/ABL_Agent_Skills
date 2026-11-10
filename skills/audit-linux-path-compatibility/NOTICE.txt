@@ -1,0 +1,5 @@
+ABL Agent Skills
+Copyright 2026 Progress Software Corporation
+
+This product includes software developed at
+Progress Software Corporation (https://www.progress.com/).
