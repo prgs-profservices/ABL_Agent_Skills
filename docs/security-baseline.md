@@ -33,6 +33,11 @@ copies of both files as `LICENSE.txt` and `NOTICE.txt`, because skill installers
 copy only the skill directory. The validator in Content validation, a required
 check, enforces this.
 
+`NOTICE` content is governed by the internal third-party license review: a
+Black Duck scan plus a review must approve all third-party components before
+distribution, and each release with component changes needs a new review. See
+`docs/maintainers.md` for the release-time steps.
+
 All six required checks run on PRs. Black Duck and Polaris authenticate with
 repository secrets, and Dependabot PRs use separate Dependabot secrets with the
 same names; rotate both copies together. Scheduled TruffleHog runs succeed

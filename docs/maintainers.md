@@ -199,7 +199,10 @@ flowchart TD
     B -- no --> X[Fix on main first]
     X --> B
     B -- yes --> C[Pick the version number]
-    C --> D[Create annotated tag<br/>on origin/main]
+    C --> R{"Third-party components<br/>changed since last release<br/>or first release?"}
+    R -- yes --> S["Request a third-party review<br/>and wait for approval"]
+    S --> D
+    R -- no --> D[Create annotated tag<br/>on origin/main]
     D --> E[Push the tag]
     E --> F[Release workflow]
     F --> G{"Tag annotated, semver,<br/>and on main?"}
@@ -233,7 +236,36 @@ gh api repos/prgs-profservices/ABL_Agent_Skills/commits/main/check-runs `
 
 All six checks should show `success`.
 
-### Step 3: Tag and push
+### Step 3: Third-party review
+
+Progress policy requires a Black Duck scan for every product and a
+third-party license review before distribution. The approved review
+produces the `NOTICE` content. See the internal [Third-Party License
+Review System](https://progresssoftware.atlassian.net/wiki/spaces/TCE/pages/2715320337/Third-Party+License+Review+System)
+documentation.
+
+A new review is required for the first release and for every later
+release in which third-party components changed: new, upgraded, or
+deleted components. Compare the dependency files with the previous
+release tag:
+
+```powershell
+git diff v1.0.0 origin/main -- requirements-*.txt .github/workflows/ `
+  .pre-commit-config.yaml
+```
+
+If the diff is empty and a review already covers an earlier release, no
+new review is needed. Otherwise request the review and wait for approval
+before tagging. Note that Dependabot dependency updates count as
+component changes.
+
+Skills are distributed as `SKILL.md` and helper files only; none of the
+repository tooling is shipped to users. Still, if a skill ever vendors
+third-party code or pins dependencies, that skill's components go into
+the review too. Keep `NOTICE` and every skill's `NOTICE.txt` in sync
+with the approved review result, and do not hand-edit them.
+
+### Step 4: Tag and push
 
 ```powershell
 git fetch origin
@@ -245,7 +277,7 @@ git push origin v1.1.0
 - Always tag `origin/main`, not your local branch.
 - **A pushed tag is permanent.** Double-check the version before pushing.
 
-### Step 4: Watch the workflow
+### Step 5: Watch the workflow
 
 ```powershell
 gh run list --workflow release.yml --limit 1
