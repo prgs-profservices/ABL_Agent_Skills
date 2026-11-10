@@ -38,25 +38,16 @@ description: One or two sentences on what the skill does and when to use it.
 my-skill-name: One line describing the purpose of the skill.
 
 Copyright 2026 Progress Software Corporation
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+SPDX-License-Identifier: Apache-2.0
 -->
 
 Instructions for the agent.
 ```
 
-Code files in the skill directory (`.py`, `.sh`, `.ps1`, `.js`, `.ts`, and ABL
-`.p`, `.w`, `.cls`, `.i`) start with the same header in that language's comment
+The header is a short reference because `LICENSE.txt` and `NOTICE.txt`, copied
+below, already ship the full terms in every skill folder. Code files in the
+skill directory (`.py`, `.sh`, `.ps1`, `.js`, `.ts`, and ABL `.p`, `.w`, `.cls`,
+`.i`) start with the same Copyright and SPDX lines in that language's comment
 syntax, for example `#` lines in Python or a `/* ... */` block in ABL.
 
 The validator enforces these rules on every PR:
@@ -65,7 +56,7 @@ The validator enforces these rules on every PR:
   and matches the directory name.
 - `description` is not empty and is at most 1024 characters.
 - The license header comment directly follows the frontmatter and contains a
-  `Copyright <year> <owner>` line and the Apache License 2.0 notice.
+  `Copyright <year> <owner>` line and `SPDX-License-Identifier: Apache-2.0`.
 - There are instructions after the header.
 - `LICENSE.txt` and `NOTICE.txt` exist and are exact copies of the repository
   `LICENSE` and `NOTICE`.

@@ -8,7 +8,7 @@ import yaml
 
 
 COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
-LICENSE_MARKER = 'Licensed under the Apache License, Version 2.0 (the "License");'
+LICENSE_MARKER = "SPDX-License-Identifier: Apache-2.0"
 COPYRIGHT_LINE = re.compile(r"^Copyright \d{4} \S.*$", re.MULTILINE)
 SKILL_CODE_SUFFIXES = {".cls", ".i", ".js", ".p", ".ps1", ".py", ".sh", ".ts", ".w"}
 CONTENT_SUFFIXES = {".json", ".md", ".yaml", ".yml"}
@@ -69,7 +69,7 @@ def validate_skill(text, directory_name):
         raise ValueError("SKILL.md must have the Apache License 2.0 header comment right after its frontmatter")
     header, instructions = body[4:].split("-->", 1)
     if LICENSE_MARKER not in header or not COPYRIGHT_LINE.search(header):
-        raise ValueError("The SKILL.md header must contain a Copyright line and the Apache License 2.0 notice")
+        raise ValueError("The SKILL.md header must contain a Copyright line and SPDX-License-Identifier: Apache-2.0")
     if not instructions.strip():
         raise ValueError("Skills must contain instructions after their license header")
 
