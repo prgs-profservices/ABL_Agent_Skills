@@ -194,8 +194,8 @@ def main():
             if blocked:
                 print("Findings require human validation and remediation before merge/publication.", file=sys.stderr)
             return 1 if blocked else 0
-    except (ValueError, OSError, subprocess.SubprocessError, importlib.metadata.PackageNotFoundError):
-        print("Cisco skill scan failed or is incompletely configured. Review private reports/configuration; raw diagnostics are suppressed.", file=sys.stderr)
+    except (ValueError, OSError, subprocess.SubprocessError, importlib.metadata.PackageNotFoundError) as error:
+        print(f"Cisco skill scan failed: {error}. Review private reports/configuration; raw diagnostics are suppressed.", file=sys.stderr)
         return 2
 
 
