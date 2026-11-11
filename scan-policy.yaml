@@ -2,6 +2,10 @@ policy_name: abl-agent-skills
 policy_version: "1.0"
 preset_base: strict
 
+llm_analysis:
+  max_instruction_body_chars: 30000
+  max_referenced_file_chars: 15000
+
 suppressions:
   - rule_id: COMPOUND_FETCH_EXECUTE
     skills: ["purge-junk-files"]
