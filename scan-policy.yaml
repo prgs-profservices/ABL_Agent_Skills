@@ -1,0 +1,21 @@
+policy_name: abl-agent-skills
+policy_version: "1.0"
+preset_base: strict
+
+llm_analysis:
+  max_instruction_body_chars: 30000
+  max_referenced_file_chars: 15000
+
+suppressions:
+  - rule_id: COMPOUND_FETCH_EXECUTE
+    skills: ["purge-junk-files"]
+    reason: >-
+      False positive: the script contains no network or remote-fetch code at
+      all; the pipeline analyzer matched doc-comment wording.
+    expires: 2027-12-31
+  - rule_id: ACTIVE_OS_PERSISTENCE_DIRECTIVE
+    skills: ["compile-openedge-abl"]
+    reason: >-
+      False positive: "startup parameters" refers to OpenEdge compile-session
+      arguments for one invocation, not operating-system persistence.
+    expires: 2027-12-31

@@ -28,7 +28,15 @@ jobs:
       - name: Verify scanner version
         run: skill-scanner --version
       - name: Scan all Git-visible skills statically
-        run: python scripts/scan_skills.py --mode static
+        run: python scripts/scan_skills.py --mode static --reports "$RUNNER_TEMP/skill-reports"
+      - name: Upload private scan reports
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
+        with:
+          name: skill-scan-reports-static
+          path: ${{ runner.temp }}/skill-reports
+          retention-days: 1
+          if-no-files-found: ignore
 
   semantic:
     name: Cisco skill semantic scan
@@ -58,4 +66,12 @@ jobs:
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL || 'openai/aws-claude-4-6-opus' }}
           SKILL_SCANNER_LLM_BASE_URL: https://aws-us-east-2-1.rag.progress.cloud/api/v1/predict/compat
           SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
-        run: python scripts/scan_skills.py --mode llm
+        run: python scripts/scan_skills.py --mode llm --reports "$RUNNER_TEMP/skill-reports"
+      - name: Upload private scan reports
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
+        with:
+          name: skill-scan-reports-semantic
+          path: ${{ runner.temp }}/skill-reports
+          retention-days: 1
+          if-no-files-found: ignore

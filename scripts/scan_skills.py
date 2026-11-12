@@ -107,8 +107,9 @@ def validate_report(report, mode):
     analyzers = report.get("analyzers_used")
     if not isinstance(analyzers, list) or not all(isinstance(name, str) for name in analyzers):
         raise ValueError("Scanner report lacks analyzer execution evidence")
+    normalized = {name.removesuffix("_analyzer") for name in analyzers}
     required = {"static"} if mode == "static" else {"static", "behavioral", "llm"}
-    if not required.issubset(analyzers):
+    if not required.issubset(normalized):
         raise ValueError("A required analyzer did not run")
     if not isinstance(report.get("is_safe"), bool):
         raise ValueError("Scanner report lacks a safety verdict")
@@ -119,16 +120,16 @@ def validate_report(report, mode):
         counts[finding["severity"]] += 1
     if report.get("findings_count") != len(report["findings"]):
         raise ValueError("Scanner finding count does not match the structured report")
-    if mode == "llm" and counts and "meta_analyzer" not in analyzers:
+    if mode == "llm" and counts and "meta" not in normalized:
         raise ValueError("Requested meta-analysis did not complete")
     return dict(counts), bool(counts) or not report["is_safe"]
 
 
-def scan_skill(snapshot, report_path, mode, environment):
+def scan_skill(snapshot, report_path, mode, environment, policy):
     command = [
         sys.executable, "-m", "skill_scanner.cli.cli", "scan", str(snapshot),
         "--format", "json", "--output", str(report_path),
-        "--policy", "strict", "--fail-on-severity", "info", "--verbose",
+        "--policy", str(policy), "--fail-on-severity", "info", "--verbose",
     ]
     if mode == "llm":
         command.extend(["--use-llm", "--use-behavioral", "--enable-meta"])
@@ -176,6 +177,9 @@ def main():
             return 0
         if sys.version_info < (3, 13):
             raise ValueError("Organization policy requires Python 3.13+ for skill scanning")
+        policy = (root / "scan-policy.yaml").resolve()
+        if not policy.is_file():
+            raise ValueError("The Cisco scan policy file scan-policy.yaml is missing")
         version = importlib.metadata.version("cisco-ai-skill-scanner")
         with tempfile.TemporaryDirectory(prefix="abl-skill-scan-") as temporary:
             workspace = Path(temporary)
@@ -186,7 +190,7 @@ def main():
             for index, skill in enumerate(skills, 1):
                 snapshot = workspace / f"skill-{index}"
                 stage_skill(root, files, skill, snapshot)
-                counts, failed = scan_skill(snapshot, reports / f"skill-{index}.json", arguments.mode, environment)
+                counts, failed = scan_skill(snapshot, reports / f"skill-{index}.json", arguments.mode, environment, policy)
                 total.update(counts)
                 blocked = blocked or failed
             print(f"Cisco Skill Scanner {version}: mode={arguments.mode}; skills={len(skills)}; findings={sum(total.values())}")
@@ -194,8 +198,8 @@ def main():
             if blocked:
                 print("Findings require human validation and remediation before merge/publication.", file=sys.stderr)
             return 1 if blocked else 0
-    except (ValueError, OSError, subprocess.SubprocessError, importlib.metadata.PackageNotFoundError):
-        print("Cisco skill scan failed or is incompletely configured. Review private reports/configuration; raw diagnostics are suppressed.", file=sys.stderr)
+    except (ValueError, OSError, subprocess.SubprocessError, importlib.metadata.PackageNotFoundError) as error:
+        print(f"Cisco skill scan failed: {error}. Review private reports/configuration; raw diagnostics are suppressed.", file=sys.stderr)
         return 2
 
 

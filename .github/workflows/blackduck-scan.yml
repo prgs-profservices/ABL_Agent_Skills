@@ -54,7 +54,7 @@ jobs:
         env:
           DETECT_PROJECT_NAME: ABL_Agent_Skills
           DETECT_PROJECT_GROUP_NAME: ${{ vars.BLACKDUCK_PROJECT_GROUP_NAME }}
-          DETECT_PROJECT_VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || 'main' }}
+          DETECT_PROJECT_VERSION_NAME: ${{ github.ref_type == 'tag' && github.ref_name || (github.event_name == 'pull_request' && 'main' || github.ref_name) }}
         with:
           bridgecli_download_version: ${{ vars.SECURITY_BRIDGE_CLI_VERSION }}
           blackducksca_url: https://progresssoftware.app.blackduck.com

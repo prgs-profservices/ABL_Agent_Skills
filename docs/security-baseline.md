@@ -27,7 +27,16 @@ external contributors (Settings > Actions > Fork pull request workflows).
 
 Dependency alerts and automated security updates, native secret scanning and
 push protection, and private vulnerability reporting are enabled. The project is
-licensed under the MIT License; see `LICENSE`.
+licensed under the Apache License 2.0; see `LICENSE` and `NOTICE`. Every skill
+must carry the Apache header in `SKILL.md` and in its code files, and exact
+copies of both files as `LICENSE.txt` and `NOTICE.txt`, because skill installers
+copy only the skill directory. The validator in Content validation, a required
+check, enforces this.
+
+`NOTICE` content is governed by the internal third-party license review: a
+Black Duck scan plus a review must approve all third-party components before
+distribution, and each release with component changes needs a new review. See
+`docs/maintainers.md` for the release-time steps.
 
 All six required checks run on PRs. Black Duck and Polaris authenticate with
 repository secrets, and Dependabot PRs use separate Dependabot secrets with the
@@ -321,13 +330,14 @@ Black Duck and Polaris have not run; no vendor verdict is implied.
 | Fork workflows | Maintainer approval for all external contributors | None |
 | Review resolution | Required by active ruleset | None |
 | Releases | Tag ruleset and scanned release workflow | None |
-| License | MIT | None |
+| License | Apache 2.0; per-skill header and license files | None |
 | Polaris | Pinned workflow and PR feedback | Confirm server policy |
 | Black Duck | Pinned workflow and PR feedback | None |
 | Cisco AI skills | Static hook and semantic CI | Skills to scan |
 
-The skills validator checks frontmatter names/descriptions and a nonempty
-instruction body. It does not yet validate all referenced links or an
+The skills validator checks frontmatter names/descriptions, the license header,
+the bundled `LICENSE.txt`/`NOTICE.txt` copies, headers in skill code files, and
+a nonempty instruction body. It does not yet validate all referenced links or an
 organization-specific skill schema. Local editor settings and environment
 files are ignored; ignoring files does not replace secret scanning.
 
@@ -335,7 +345,7 @@ files are ignored; ignoring files does not replace secret scanning.
 
 1. Obtain the approved scanner configuration, policy thresholds, review count,
    and ownership requirements. Confirm legal approval before adding project
-   content. The project uses the MIT License.
+   content. The project uses the Apache License 2.0.
 2. Establish the initial `main` through an approved, externally reviewed
    bootstrap process. This empty repository has no branch for a normal PR yet.
    The assistant does not commit or push automatically.

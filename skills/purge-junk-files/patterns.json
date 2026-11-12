@@ -1,0 +1,28 @@
+{
+  "description": "File patterns to match for deletion in purge-junk-files skill",
+  "patterns": [
+    "*.bak",
+    "*.old",
+    "*.backup",
+    "*.orig",
+    "*.tmp",
+    "*.[0-9][0-9]*.*",
+    "* - Copy.*",
+    "* - Copy (*.*",
+    "Copy of *.*",
+    "*-OLD.*"
+  ],
+  "exclude": [
+    "*.doc"
+  ],
+  "notes": [
+    "Each pattern supports Windows wildcards: * (any chars), ? (single char)",
+    "Patterns are matched case-insensitively",
+    "Numeric suffix files: *.[0-9][0-9]*.* requires at least 2 consecutive digits in a segment, e.g. myprogram.283091287.p or report.20250315.w — avoids false positives like '8.1d-01 Job Processing Guide.doc'",
+    "exclude: file-level wildcard patterns that are never deleted regardless of pattern matches",
+    "Windows Explorer copies: '* - Copy.*' matches 'foo - Copy.p'; '* - Copy (*.*' matches 'foo - Copy (2).p'; 'Copy of *.*' matches 'Copy of foo.p'",
+    "Inline -OLD suffix: '*-OLD.*' matches 'foo-OLD.p' (case-insensitive: -old, -Old, -OLD all match)",
+    "Add or remove patterns as needed for your project",
+    "Command-line patterns (-Patterns) override these settings"
+  ]
+}
