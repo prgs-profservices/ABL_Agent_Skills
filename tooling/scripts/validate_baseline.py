@@ -112,7 +112,7 @@ def validate_file(path, root, skills=frozenset()):
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     result = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
         cwd=root, check=True, capture_output=True,

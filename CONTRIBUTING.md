@@ -70,16 +70,42 @@ The validator enforces these rules on every PR:
 Keep helper files to what the skill needs. Do not include secrets, credentials,
 internal URLs, customer data, or instructions that hide what the skill does.
 
+## Development Setup
+
+Use Python 3.13 and Git:
+
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r tooling/requirements-dev.txt
+.\.venv\Scripts\python.exe -m pre_commit install
+.\.venv\Scripts\python.exe -m unittest discover -s tooling/tests -t tooling -v
+.\.venv\Scripts\python.exe -m pre_commit run --all-files
+```
+
+On Linux/macOS, use `.venv/bin/python` instead of the Windows path.
+Pre-commit checks all committed files in CI. Before the first commit, run it
+with `--files` and the candidate filenames instead of `--all-files`.
+
+Cisco Skill Scanner runs statically in pre-commit and Linux CI, with a separate
+Nuclia semantic check for PRs and pre-publication scans. It scans all Git-visible
+`SKILL.md` directories, including helper files. Empty scope is reported explicitly.
+The scanner does not support Windows ARM64 hosts, even with emulated x64 Python;
+VMware Fusion does not change that Windows guest limitation. Native macOS ARM64
+or a Linux ARM64 VM is supported. Use a separate checkout and virtual environment
+for each OS rather than sharing the Windows venv or bypassing the hook.
+
+Maintainers: see [tooling/docs/maintainers.md](tooling/docs/maintainers.md).
+
 ## Local Checks
 
-Follow the setup in the [README](README.md), then run:
+Follow the setup in [Development Setup](#development-setup), then run:
 
 ```bash
 pre-commit run --all-files
 ```
 
-The Cisco skill scanner hook needs Python 3.13 on a supported platform; see the
-README if it cannot run on your machine.
+The Cisco skill scanner hook needs Python 3.13 on a supported platform; see
+[Development Setup](#development-setup) if it cannot run on your machine.
 
 ## How a Contribution Is Reviewed
 
@@ -96,8 +122,8 @@ README if it cannot run on your machine.
 5. The PR is merged when all required checks pass, all review conversations are
    resolved, and a code owner has approved it.
 
-Changes to `.github/`, `scripts/`, pinned dependencies, or scanning
-configuration are made by maintainers only.
+Changes to `.github/`, `tooling/` and `.pre-commit-config.yaml` are made by
+maintainers only.
 
 ## Releases
 

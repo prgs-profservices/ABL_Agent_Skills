@@ -153,7 +153,7 @@ def main():
     parser.add_argument("--count-only", action="store_true")
     parser.add_argument("--reports", type=Path, help="Private report directory; do not publish raw reports")
     arguments = parser.parse_args()
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     try:
         files = repository_files(root)
         skills = skill_directories(files)
@@ -177,9 +177,9 @@ def main():
             return 0
         if sys.version_info < (3, 13):
             raise ValueError("Organization policy requires Python 3.13+ for skill scanning")
-        policy = (root / "scan-policy.yaml").resolve()
+        policy = (root / "tooling" / "scan-policy.yaml").resolve()
         if not policy.is_file():
-            raise ValueError("The Cisco scan policy file scan-policy.yaml is missing")
+            raise ValueError("The Cisco scan policy file tooling/scan-policy.yaml is missing")
         version = importlib.metadata.version("cisco-ai-skill-scanner")
         with tempfile.TemporaryDirectory(prefix="abl-skill-scan-") as temporary:
             workspace = Path(temporary)

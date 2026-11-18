@@ -1,71 +1,119 @@
 # ABL Agent Skills
 
-Agent skills and documentation for OpenEdge ABL.
+Skills that help AI coding agents work with OpenEdge ABL projects: compiling
+and running code, ABLUnit testing, database schema changes, code review,
+modernization and audits.
 
-## Installing Skills
+A skill is a folder with instructions (`SKILL.md`) and optional helper
+scripts. Agents that support the open skills format load a skill when a task
+needs it.
 
-### Option A: `npx` (requires Node.js)
+## Install
 
-`npx` runs a package without requiring a global install. Install from a release
-to get a fixed, scanned version:
-
-```bash
-npx skills add prgs-profservices/ABL_Agent_Skills#<release-tag>
-```
-
-Without a tag, `npx skills add prgs-profservices/ABL_Agent_Skills` installs the
-latest commit on `main`. Everything on `main` has passed the required scans and
-review, but it may contain changes that are not yet in a release. See the
-[releases](https://github.com/prgs-profservices/ABL_Agent_Skills/releases) for
-available versions.
-
-### Option B: Manual install from clone (symlink or copy)
-
-Clone this repository, then symlink or copy the desired skill directory from
-`skills/` into the location where your target project loads skills. For example,
-replace these paths with your local checkout and the skills directory used by
-your agent:
+With Node.js installed, run this in your project:
 
 ```bash
-git clone https://github.com/prgs-profservices/ABL_Agent_Skills.git /path/to/ABL_Agent_Skills
-ln -s /path/to/ABL_Agent_Skills/skills/<skill-name> /path/to/target-project/<skills-directory>/<skill-name>
+npx skills add prgs-profservices/ABL_Agent_Skills
 ```
 
-This option does not require Node.js.
+The command lets you choose which skills to install and for which agents.
+Other useful forms:
 
-## Contributing and Security
+```bash
+# List all skills without installing
+npx skills add prgs-profservices/ABL_Agent_Skills --list
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) to add a skill, and
-[SECURITY.md](SECURITY.md) to report a problem privately. This project is
-licensed under the [Apache License 2.0](LICENSE); see also [NOTICE](NOTICE).
-Each skill directory contains its own copies as `LICENSE.txt` and `NOTICE.txt`,
-so installed skills keep their license terms.
+# Install one skill
+npx skills add prgs-profservices/ABL_Agent_Skills --skill compile-openedge-abl
 
-## Development
-
-Use Python 3.13 and Git:
-
-```powershell
-py -3.13 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-.\.venv\Scripts\python.exe -m pre_commit install
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-.\.venv\Scripts\python.exe -m pre_commit run --all-files
+# Install a specific release
+npx skills add prgs-profservices/ABL_Agent_Skills@v1.0.0
 ```
 
-On Linux/macOS, use `.venv/bin/python` instead of the Windows path.
-Pre-commit checks all committed files in CI. Before the first commit, run it
-with `--files` and the candidate filenames instead of `--all-files`.
+Without a version you get the latest `main`, which has passed review and all
+security scans. See the
+[releases page](https://github.com/prgs-profservices/ABL_Agent_Skills/releases)
+for versions.
 
-Cisco Skill Scanner runs statically in pre-commit and Linux CI, with a separate
-Nuclia semantic check for PRs and pre-publication scans. It scans all Git-visible
-`SKILL.md` directories, including helper files. Empty scope is reported explicitly.
-The scanner does not support Windows ARM64 hosts, even with emulated x64 Python;
-VMware Fusion does not change that Windows guest limitation. Native macOS ARM64
-or a Linux ARM64 VM is supported. Use a separate checkout and virtual environment
-for each OS rather than sharing the Windows venv or bypassing the hook.
+Without Node.js, clone the repository and copy or symlink a folder from
+`skills/` into the skills directory your agent uses.
 
-See the [security baseline](docs/security-baseline.md) for activation steps,
-scan policy, and outstanding requirements. Maintainers: see the
-[maintainer guide](docs/maintainers.md) for reviewing community PRs and
-publishing releases.
+## Skills
+
+<!-- pyml disable line-length -->
+
+### Project setup
+
+| Skill | What it does |
+| --- | --- |
+| [detect-editor](skills/detect-editor/) | Detect whether the user is running VS Code or Devin to open files in the correct editor. |
+| [determine-oe-params](skills/determine-oe-params/) | Extract OpenEdge runtime parameters (extraParameters and database connections) from openedge-project.json for running or compiling ABL programs. |
+| [get-project-dlc](skills/get-project-dlc/) | Determine the OpenEdge installation path (DLC) for the current project. |
+| [get-source-directories](skills/get-source-directories/) | Identify all compilable source directories from openedge-project.json, respecting includes and excludes filters. |
+| [get-workspace-propath](skills/get-workspace-propath/) | Extract PROPATH from openedge-project.json buildPath configuration. |
+| [make-project-ini](skills/make-project-ini/) | Create a .ini file to set the PROPATH when running an OpenEdge program. |
+| [resolve-vscode-settings-path](skills/resolve-vscode-settings-path/) | Resolve the absolute path to the user's VS Code settings.json file. |
+
+### Compile, run and test
+
+| Skill | What it does |
+| --- | --- |
+| [compile-openedge-abl](skills/compile-openedge-abl/) | Compile or verify compilation of an OpenEdge ABL source file (.cls, .w, .i, or .p), including when building, changing, or checking ABL code. |
+| [compile-xref](skills/compile-xref/) | For an ABL source file, generate an xref file which can be used to analyze the code, including which indexes are used for queries. |
+| [run-openedge-program](skills/run-openedge-program/) | Execute an OpenEdge ABL program (.p, .cls, or .w file) from the command line. |
+| [create-ablunit-tests](skills/create-ablunit-tests/) | Create an ABLUnit test class for a given OpenEdge ABL program that the user wants testing for. |
+| [find-ablunit-tests](skills/find-ablunit-tests/) | Locate existing ABLUnit test files for a given OpenEdge ABL source file. |
+| [test-with-ablunit](skills/test-with-ablunit/) | Test ABL programs (.w, .cls, .p) by running ABLUnit tests. |
+
+### Databases
+
+| Skill | What it does |
+| --- | --- |
+| [create-openedge-database](skills/create-openedge-database/) | Create an empty OpenEdge database from structure and schema definition files. |
+| [load-openedge-schema](skills/load-openedge-schema/) | Load OpenEdge database schema from .df files using OpenEdge DevOps Framework (OEDF) LoadDBSchema task. |
+| [dump-database-df](skills/dump-database-df/) | Create a database definitions (.df) file (a.k.a. "dump a schema") for a given database. |
+| [add-openedge-db-field](skills/add-openedge-db-field/) | Add a new field to an OpenEdge database table by generating a .df schema file. |
+| [drop-openedge-db-field](skills/drop-openedge-db-field/) | Remove a field from an OpenEdge database table by generating a .df schema file. |
+| [simplify-st-file](skills/simplify-st-file/) | Simplify an OpenEdge production database structure file to minimum definition for creating an empty database. |
+
+### Code review and modernization
+
+| Skill | What it does |
+| --- | --- |
+| [openedge-code-review](skills/openedge-code-review/) | Review OpenEdge ABL code files for conformance to coding standards and best practices. |
+| [modernize-variables](skills/modernize-variables/) | Convert legacy DEFINE VARIABLE syntax to modern VAR syntax in ABL code. |
+| [tighten-up](skills/tighten-up/) | Reduce code volume for a file while keeping the functionality the same. |
+| [purge-junk-files](skills/purge-junk-files/) | Clean up an ABL codebase by identifying and removing old backup copies, version-suffixed files, and temporary junk files. |
+
+### Analysis and audits
+
+| Skill | What it does |
+| --- | --- |
+| [abl-project-metrics](skills/abl-project-metrics/) | Compute project size and scope metrics for an OpenEdge ABL project, keeping production functional source separate from test source. |
+| [analyze-abl-dependencies](skills/analyze-abl-dependencies/) | Analyze OpenEdge ABL code to determine external (non-ABL) dependencies such as .NET assemblies, Java classes, COM objects, DLLs, and web services. |
+| [analyze-oe-profile](skills/analyze-oe-profile/) | Parse an OpenEdge PROFILER v3 .out or .prof file and report the hottest source lines by exclusive (self) CPU time, using the LineSummary section for accurate per-line attribution. |
+| [audit-abl-memory-leaks](skills/audit-abl-memory-leaks/) | Analyze OpenEdge ABL source for potential memory/resource leak patterns and generate an interactive HTML report with risk-ranked findings. |
+| [audit-linux-path-compatibility](skills/audit-linux-path-compatibility/) | Analyze ABL source for Linux path compatibility blockers such as Windows-style separators, hard-coded absolute paths, and non-relative path usage in RUN/include/file I/O contexts. |
+| [audit-os-command-execution](skills/audit-os-command-execution/) | Analyze ABL code to inventory OS command execution points and generate a target-platform OS command compatibility audit after two AI passes (unresolved command resolution, then platform-only and gating review). |
+| [find-encrypted-source](skills/find-encrypted-source/) | Scan ABL source files in the project to identify which ones are XCODE-encrypted (start with byte 0x13), and write results to a CSV in the docs/ folder. |
+| [function-point-analysis-shortcut](skills/function-point-analysis-shortcut/) | Estimate a project's rebuild effort and cost using a fast function-point-analysis shortcut (NESMA Indicative Function Point Count — data functions only, no transaction rating) instead of a full FPA, then convert the result to hours and price using user-supplied hours-per-FP and price-per-hour rates. |
+
+### Documentation
+
+| Skill | What it does |
+| --- | --- |
+| [markdown-to-word](skills/markdown-to-word/) | Convert a Markdown (.md) file to a Word (.docx) document. |
+
+<!-- pyml enable line-length -->
+
+## Contributing
+
+New skills and fixes are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+Report security problems privately as described in
+[SECURITY.md](SECURITY.md).
+
+## License
+
+Apache License 2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). Each skill
+folder includes its own LICENSE.txt and NOTICE.txt, so installed skills keep
+their license terms.

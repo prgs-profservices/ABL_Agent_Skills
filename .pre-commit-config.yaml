@@ -13,7 +13,7 @@ repos:
     hooks:
       - id: validate-baseline
         name: Validate baseline and skills
-        entry: python scripts/validate_baseline.py
+        entry: python tooling/scripts/validate_baseline.py
         language: python
         additional_dependencies: [PyYAML==6.0.3]
         pass_filenames: false
@@ -27,7 +27,7 @@ repos:
         exclude: ^skills/
       - id: cisco-skill-static
         name: Cisco AI skill static scan
-        entry: python scripts/scan_skills.py --mode static
+        entry: python tooling/scripts/scan_skills.py --mode static
         language: python
         language_version: python3.13
         additional_dependencies: [cisco-ai-skill-scanner==2.3.2]
