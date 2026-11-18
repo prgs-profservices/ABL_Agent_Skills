@@ -50,7 +50,7 @@ jobs:
       - name: Install development dependencies for inventory
         run: python -m pip install -r requirements-dev.txt
       - name: Run Black Duck SCA scan
-        uses: blackduck-inc/black-duck-security-scan@152247222aa9cd38124acd5c0cf60f4db71adc3f
+        uses: blackduck-inc/black-duck-security-scan@d8375979d21af3848d894171815d0285f9a4d983
         env:
           DETECT_PROJECT_NAME: ABL_Agent_Skills
           DETECT_PROJECT_GROUP_NAME: ${{ vars.BLACKDUCK_PROJECT_GROUP_NAME }}
