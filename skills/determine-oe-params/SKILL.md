@@ -9,7 +9,7 @@ compatibility: Cross-platform, OpenEdge project (openedge-project.json)
 <!--
 determine-oe-params: Extract OpenEdge runtime parameters (extraParameters and database connections) from openedge-project.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

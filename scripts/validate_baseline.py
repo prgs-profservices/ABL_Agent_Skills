@@ -9,7 +9,10 @@ import yaml
 
 COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
 LICENSE_MARKER = "SPDX-License-Identifier: Apache-2.0"
-COPYRIGHT_LINE = re.compile(r"^Copyright \d{4} \S.*$", re.MULTILINE)
+COPYRIGHT_LINE = re.compile(
+    r"^Copyright © \d{4}(?:-\d{4})? Progress Software Corporation and/or its subsidiaries or affiliates\. All Rights Reserved\.$",
+    re.MULTILINE,
+)
 SKILL_CODE_SUFFIXES = {".cls", ".i", ".js", ".p", ".ps1", ".py", ".sh", ".ts", ".w"}
 CONTENT_SUFFIXES = {".json", ".md", ".yaml", ".yml"}
 
@@ -69,7 +72,7 @@ def validate_skill(text, directory_name):
         raise ValueError("SKILL.md must have the Apache License 2.0 header comment right after its frontmatter")
     header, instructions = body[4:].split("-->", 1)
     if LICENSE_MARKER not in header or not COPYRIGHT_LINE.search(header):
-        raise ValueError("The SKILL.md header must contain a Copyright line and SPDX-License-Identifier: Apache-2.0")
+        raise ValueError("The SKILL.md header must contain the official Progress copyright line and SPDX-License-Identifier: Apache-2.0")
     if not instructions.strip():
         raise ValueError("Skills must contain instructions after their license header")
 
@@ -83,7 +86,7 @@ def validate_skill_license_files(directory, root):
 
 def validate_skill_code(text):
     if LICENSE_MARKER not in text or not COPYRIGHT_LINE.search(re.sub(r"^\W+", "", text, flags=re.MULTILINE)):
-        raise ValueError("Code files in skills must start with the Apache License 2.0 header")
+        raise ValueError("Code files in skills must start with the official Progress copyright line and the Apache License 2.0 header")
 
 
 def skill_directories(names):

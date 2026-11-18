@@ -9,7 +9,7 @@ compatibility: Cross-platform, OpenEdge project (openedge-project.json)
 <!--
 find-ablunit-tests: Locate existing ABLUnit test files for a given OpenEdge ABL source file.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

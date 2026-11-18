@@ -9,7 +9,7 @@ compatibility: Windows, PowerShell 5.1+, OpenEdge DLC
 <!--
 audit-linux-path-compatibility: Analyze ABL source for Linux path compatibility blockers such as Windows-style separators, hard-coded absolute paths, and non-relative path usage in RUN/include/file I/O contexts.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

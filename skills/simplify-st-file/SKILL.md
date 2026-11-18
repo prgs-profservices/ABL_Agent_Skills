@@ -9,7 +9,7 @@ compatibility: Cross-platform, OpenEdge project (openedge-project.json)
 <!--
 simplify-st-file: Simplify an OpenEdge production database structure file to minimum definition for creating an empty database.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

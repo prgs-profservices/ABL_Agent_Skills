@@ -9,7 +9,7 @@ compatibility: Cross-platform, OpenEdge project (openedge-project.json)
 <!--
 openedge-code-review: Review OpenEdge ABL code files for conformance to coding standards and best practices.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

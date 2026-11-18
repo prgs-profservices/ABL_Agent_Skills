@@ -9,7 +9,7 @@ compatibility: Windows, PowerShell 5.1+, OpenEdge DLC
 <!--
 audit-os-command-execution: Analyze ABL code to inventory OS command execution points and generate a target-platform OS command compatibility audit after two AI passes (unresolved command resolution, then platform-only and gating review).
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

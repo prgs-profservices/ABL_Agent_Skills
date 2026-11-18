@@ -9,7 +9,7 @@ compatibility: Windows, PowerShell 5.1+, OpenEdge DLC
 <!--
 detect-editor: Detect whether the user is running VS Code or Devin to open files in the correct editor.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

@@ -9,7 +9,7 @@ compatibility: Cross-platform, OpenEdge project (openedge-project.json)
 <!--
 analyze-abl-dependencies: Analyze OpenEdge ABL code to determine external (non-ABL) dependencies such as.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

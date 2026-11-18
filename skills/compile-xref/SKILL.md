@@ -9,7 +9,7 @@ compatibility: Windows, PowerShell 5.1+, OpenEdge DLC
 <!--
 compile-xref: For an ABL source file, generate an xref file which can be used to analyze the code, including which indexes are used for queries.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

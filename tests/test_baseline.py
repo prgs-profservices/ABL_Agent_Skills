@@ -14,7 +14,7 @@ from scripts.validate_baseline import (
 )
 from scripts.configure_github import build_ruleset
 
-HEADER = f"Copyright 2026 Progress Software Corporation\n\n{LICENSE_MARKER}\n"
+HEADER = f"Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.\n\n{LICENSE_MARKER}\n"
 SKILL = f"---\nname: test-skill\ndescription: Test skill\n---\n\n<!--\ntest-skill\n\n{HEADER}-->\n\nInstructions\n"
 
 
@@ -65,7 +65,26 @@ class BaselineTests(unittest.TestCase):
 
     def test_skill_header_without_copyright_rejected(self):
         with self.assertRaises(ValueError):
-            validate_skill(SKILL.replace("Copyright 2026 Progress Software Corporation\n", ""), "test-skill")
+            validate_skill(SKILL.replace("Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.\n", ""), "test-skill")
+
+    def test_skill_header_old_copyright_line_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_skill(
+                SKILL.replace(
+                    "Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.",
+                    "Copyright 2026 Progress Software Corporation",
+                ),
+                "test-skill",
+            )
+
+    def test_skill_header_copyright_year_range_accepted(self):
+        validate_skill(
+            SKILL.replace(
+                "Copyright © 2026 Progress",
+                "Copyright © 2026-2027 Progress",
+            ),
+            "test-skill",
+        )
 
     def test_skill_header_without_license_notice_rejected(self):
         with self.assertRaises(ValueError):
@@ -80,6 +99,17 @@ class BaselineTests(unittest.TestCase):
             validate_skill_code("import os\n")
         validate_skill_code("# " + HEADER.replace("\n", "\n# ") + "\nimport os\n")
         validate_skill_code("/* " + HEADER + "*/\nDISPLAY 'hi'.\n")
+
+    def test_skill_code_old_copyright_line_rejected(self):
+        old_header = HEADER.replace(
+            "Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.",
+            "Copyright 2026 Progress Software Corporation",
+        )
+        with self.assertRaises(ValueError):
+            validate_skill_code("# " + old_header.replace("\n", "\n# ") + "\nimport os\n")
+
+    def test_skill_code_block_comment_header(self):
+        validate_skill_code("/*\n * " + HEADER.replace("\n", "\n * ") + "*/\nDISPLAY 'hi'.\n")
 
     def test_only_code_inside_skills_needs_header(self):
         with tempfile.TemporaryDirectory() as temporary:

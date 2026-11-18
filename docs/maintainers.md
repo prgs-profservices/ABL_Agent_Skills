@@ -104,9 +104,9 @@ The scans help, but your review is the real gate. Check:
 - [ ] The three secret-free checks pass: `Content validation`,
       `TruffleHog secret scan` and `Cisco skill static scan`.
 - [ ] The contributor ticked the license box in the PR template.
-- [ ] The `Copyright` line in each header names the right owner. The template
-      uses Progress Software Corporation; if a contributor puts their own name,
-      check with legal before merging.
+- [ ] The header uses the official Progress copyright line from `NOTICE`.
+      `Content validation` rejects anything else, so if a contributor wants
+      their own name there, check with legal before changing the validator.
 
 The license header and the `LICENSE.txt`/`NOTICE.txt` copies are checked by
 `Content validation`, so you don't need to compare them by hand.
