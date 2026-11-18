@@ -9,7 +9,7 @@ compatibility: Cross-platform, OpenEdge project (openedge-project.json)
 <!--
 function-point-analysis-shortcut: Estimate a project's rebuild effort and cost using a fast function-point-analysis shortcut (NESMA Indicative Function Point Count — data functions only, no transaction rating) instead of a full FPA, then convert the result to hours and price using user-supplied hours-per-FP and price-per-hour rates.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

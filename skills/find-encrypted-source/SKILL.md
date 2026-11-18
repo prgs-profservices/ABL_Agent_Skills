@@ -9,7 +9,7 @@ compatibility: Windows, PowerShell 5.1+, OpenEdge DLC
 <!--
 find-encrypted-source: Scan ABL source files in the project to identify which ones are XCODE-encrypted (start with byte 0x13), and write results to a CSV in the docs/ folder.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

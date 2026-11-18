@@ -28,6 +28,7 @@ cp NOTICE skills/my-skill-name/NOTICE.txt
 `SKILL.md` starts with YAML frontmatter, followed by the license header as an
 HTML comment, followed by the instructions:
 
+<!-- pyml disable line-length -->
 ```markdown
 ---
 name: my-skill-name
@@ -37,12 +38,13 @@ description: One or two sentences on what the skill does and when to use it.
 <!--
 my-skill-name: One line describing the purpose of the skill.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 
 Instructions for the agent.
 ```
+<!-- pyml enable line-length -->
 
 The header is a short reference because `LICENSE.txt` and `NOTICE.txt`, copied
 below, already ship the full terms in every skill folder. Code files in the
@@ -55,8 +57,10 @@ The validator enforces these rules on every PR:
 - `name` uses lowercase letters, numbers and hyphens, is at most 64 characters,
   and matches the directory name.
 - `description` is not empty and is at most 1024 characters.
-- The license header comment directly follows the frontmatter and contains a
-  `Copyright <year> <owner>` line and `SPDX-License-Identifier: Apache-2.0`.
+- The license header comment directly follows the frontmatter and contains the
+  official Progress copyright line, exactly as in the template above and in
+  `NOTICE`, and `SPDX-License-Identifier: Apache-2.0`. Only the year may
+  differ, as a single year or a range such as `2026-2027`.
 - There are instructions after the header.
 - `LICENSE.txt` and `NOTICE.txt` exist and are exact copies of the repository
   `LICENSE` and `NOTICE`.

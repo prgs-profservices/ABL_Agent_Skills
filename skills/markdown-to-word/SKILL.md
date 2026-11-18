@@ -9,7 +9,7 @@ compatibility: Windows, PowerShell 5.1+ or Bash, Python 3.8+
 <!--
 markdown-to-word: Convert a Markdown (.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

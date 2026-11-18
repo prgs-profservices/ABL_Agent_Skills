@@ -9,7 +9,7 @@ compatibility: Cross-platform
 <!--
 resolve-vscode-settings-path: Resolve the absolute path to the user's VS Code settings.
 
-Copyright 2026 Progress Software Corporation
+Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 

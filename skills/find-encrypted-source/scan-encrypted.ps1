@@ -1,4 +1,4 @@
-# Copyright 2026 Progress Software Corporation
+# Copyright © 2026 Progress Software Corporation and/or its subsidiaries or affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 # Resolve workspace root: this script lives at <skills-root>/find-encrypted-source/
