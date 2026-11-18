@@ -18,9 +18,10 @@ pushes and branch deletion are blocked. There are no bypass actors. Approvals
 have been required since 2026-10-15; earlier PRs could be merged by their author
 without review.
 
-`.github/CODEOWNERS` assigns every path to `@prorpy` and `@SteveSouthwell`, so
-one of them must approve each PR. A second ruleset, `Release tags`, protects
-`refs/tags/v*` from deletion and from being moved, with no bypass actors.
+`.github/CODEOWNERS` assigns every path to `@prorpy`, `@DamienK-PRGS`,
+`@msquinta` and `@JMG-Progress`, so one of them must approve each PR. A second
+ruleset, `Release tags`, protects `refs/tags/v*` from deletion and from being
+moved, with no bypass actors.
 
 Workflows from fork PRs only run after a maintainer approves them, for all
 external contributors (Settings > Actions > Fork pull request workflows).

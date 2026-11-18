@@ -1,7 +1,8 @@
 # Maintainer Guide
 
-Day-to-day instructions for the maintainers and code owners, `@prorpy` and
-`@SteveSouthwell`. For the reasoning behind each control, see the
+Day-to-day instructions for the maintainers and code owners, `@prorpy`,
+`@DamienK-PRGS`, `@msquinta` and `@JMG-Progress`. For the reasoning behind
+each control, see the
 [security baseline](security-baseline.md).
 
 ## The Rules GitHub Enforces
@@ -16,7 +17,7 @@ discussion as any other security change.
   `Content validation`, `TruffleHog secret scan`, `Cisco skill static scan`,
   `Cisco skill semantic scan`, `Polaris SAST Scan` and `Black Duck SCA Scan`.
 - One code owner must approve, and it cannot be the person who pushed the
-  latest commit. In practice: **if one of us pushes, the other approves.**
+  latest commit. In practice: **if one of us pushes, another of us approves.**
 - A new push dismisses earlier approvals.
 - All review conversations must be resolved.
 - Release tags (`v*`) cannot be deleted or moved once pushed.
@@ -26,7 +27,7 @@ flowchart LR
     PR[PR to main] --> C{6 checks pass?}
     C -- no --> FIX[Push a fix]
     FIX --> C
-    C -- yes --> A{Approved by the other<br/>code owner?}
+    C -- yes --> A{Approved by another<br/>code owner?}
     A -- no --> WAIT[Wait for review]
     WAIT --> A
     A -- yes --> R{Conversations<br/>resolved?}
@@ -143,7 +144,7 @@ The contributor's commits and authorship are kept unchanged.
    the most important one for skills. Read its result, but treat the LLM part
    as advisory: submitted text can try to manipulate it. Static and behavioral
    findings, and your own review, decide.
-2. The **other** maintainer reviews and approves. You pushed the branch, so you
+2. **Another** code owner reviews and approves. You pushed the branch, so you
    cannot approve it yourself.
 3. Merge, then close the fork PR with a comment such as
    "Merged via #M, thank you!".
@@ -163,7 +164,7 @@ For our own changes:
 
 1. Create a branch from `main`, commit, push and open a PR.
 2. Wait for the six checks.
-3. The other maintainer reviews and approves.
+3. Another code owner reviews and approves.
 4. Merge.
 
 If `main` moves before you merge, update your branch (the **Update branch**
