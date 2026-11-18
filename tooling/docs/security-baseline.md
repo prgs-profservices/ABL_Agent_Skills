@@ -37,7 +37,7 @@ check, enforces this.
 `NOTICE` content is governed by the internal third-party license review: a
 Black Duck scan plus a review must approve all third-party components before
 distribution, and each release with component changes needs a new review. See
-`docs/maintainers.md` for the release-time steps.
+`maintainers.md` for the release-time steps.
 
 All six required checks run on PRs. Black Duck and Polaris authenticate with
 repository secrets, and Dependabot PRs use separate Dependabot secrets with the
@@ -48,7 +48,7 @@ daily on `main`.
 
 Cisco Skill Scanner is required by the supplied skill-security policy for
 development, PR review, and pre-publication. Version `2.2.2` is pinned in
-`requirements-skill-scanner.txt` and the local pre-commit hook. CI uses Python
+`tooling/requirements-skill-scanner.txt` and the local pre-commit hook. CI uses Python
 3.13 to meet the organization's prerequisite. The scanner's published package
 supports older Python too, but that does not override the organization policy.
 
@@ -108,9 +108,9 @@ organization-approved false-positive policy. No blanket ignore list is added.
    `https://aws-us-east-2-1.rag.progress.cloud/api/v1/predict/compat`.
    Do not use `SKILL_SCANNER_LLM_API_BASE`. The wrapper rejects that misspelling,
    other endpoints, missing keys, and unapproved model IDs before LLM scanning.
-5. Run `python scripts/scan_skills.py --mode llm` with the three variables set
-   to confirm the gateway accepts the key, then scan every skill with semantic
-   mode before publication. Fork PRs fail closed and follow the community
+5. Run `python tooling/scripts/scan_skills.py --mode llm` with the three
+   variables set to confirm the gateway accepts the key, then scan every skill
+   with semantic mode before publication. Fork PRs fail closed and follow the community
    contribution path below; credentials are never provided through a privileged
    `pull_request_target` workflow.
 
@@ -124,11 +124,11 @@ access-restricted file outside this repository, such as
 On a supported platform with Python 3.13 and the pinned scanner installed:
 
 ```bash
-python -m pip install -r requirements-skill-scanner.txt
+python -m pip install -r tooling/requirements-skill-scanner.txt
 skill-scanner --version
-python scripts/scan_skills.py --mode static \
+python tooling/scripts/scan_skills.py --mode static \
   --reports .skill-scanner-reports/static
-python scripts/scan_skills.py --mode llm \
+python tooling/scripts/scan_skills.py --mode llm \
   --reports .skill-scanner-reports/llm
 ```
 
@@ -163,10 +163,10 @@ With Python 3.13 installed on the Mac or Linux guest:
 git clone https://github.com/prgs-profservices/ABL_Agent_Skills.git
 cd ABL_Agent_Skills
 python3.13 -m venv .venv
-.venv/bin/python -m pip install -r requirements-dev.txt
-.venv/bin/python -m pip install -r requirements-skill-scanner.txt
+.venv/bin/python -m pip install -r tooling/requirements-dev.txt
+.venv/bin/python -m pip install -r tooling/requirements-skill-scanner.txt
 .venv/bin/python -m pre_commit install
-.venv/bin/python scripts/scan_skills.py --mode static
+.venv/bin/python tooling/scripts/scan_skills.py --mode static
 ```
 
 These are supported-platform instructions, not a claim that the Mac host was
@@ -256,8 +256,8 @@ and those PRs cannot be merged directly. The process, also described in
 1. A maintainer approves running workflows on the fork PR. Content validation,
    TruffleHog and the Cisco static scan run without credentials.
 2. A maintainer reviews the change by hand, including helper files, and rejects
-   any change to `.github/`, `scripts/`, pinned dependencies, or scanning
-   configuration from outside contributors.
+   any change to `.github/`, `tooling/` or `.pre-commit-config.yaml` from
+   outside contributors.
 3. The maintainer pushes the contributor's commits to an internal branch and
    opens a new PR, so all six checks run with credentials:
 
@@ -366,7 +366,7 @@ files are ignored; ignoring files does not replace secret scanning.
    It creates a new ruleset, not a replacement for existing protections.
 
 ```powershell
-python scripts/configure_github.py `
+python tooling/scripts/configure_github.py `
   --polaris-check "Actual Polaris check" --polaris-app-id 100 `
   --blackduck-check "Actual Black Duck check" --blackduck-app-id 200
 ```

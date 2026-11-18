@@ -85,9 +85,9 @@ New fork PRs show **"Approve and run workflows"** on the PR page. Only click it
 after a quick look at the changed files: the workflows run the contributor's
 code, without secrets but with network access.
 
-Never approve workflows for a fork PR that changes `.github/`, `scripts/`,
-`requirements-*.txt` or `.pre-commit-config.yaml`. Close it instead; those files
-are changed by maintainers only.
+Never approve workflows for a fork PR that changes `.github/`, `tooling/` or
+`.pre-commit-config.yaml`. Close it instead; those files are changed by
+maintainers only.
 
 ### Step 2: Review by hand
 
@@ -251,7 +251,7 @@ deleted components. Compare the dependency files with the previous
 release tag:
 
 ```powershell
-git diff v1.0.0 origin/main -- requirements-*.txt .github/workflows/ `
+git diff v1.0.0 origin/main -- tooling/requirements-*.txt .github/workflows/ `
   .pre-commit-config.yaml
 ```
 
