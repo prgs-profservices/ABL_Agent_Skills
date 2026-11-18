@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: git archive --format=zip --output="$RUNNER_TEMP/polaris-source.zip" HEAD
       - name: Run Polaris SAST scan
-        uses: blackduck-inc/black-duck-security-scan@152247222aa9cd38124acd5c0cf60f4db71adc3f
+        uses: blackduck-inc/black-duck-security-scan@d8375979d21af3848d894171815d0285f9a4d983
         with:
           bridgecli_download_version: ${{ vars.SECURITY_BRIDGE_CLI_VERSION }}
           polaris_server_url: https://polaris.blackduck.com
