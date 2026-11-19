@@ -18,7 +18,7 @@
 
 .PARAMETER ProductionPaths
     Directories that contain functional/production ABL source.  Defaults to
-    common ABL source folders; override for your project layout.
+    src and src\main; override for your project layout.
 
 .PARAMETER TestPaths
     Directories that contain ABLUnit test source.  Defaults to src\test.
@@ -47,10 +47,8 @@ param(
 
     [Parameter()]
     [string[]]$ProductionPaths = @(
-        "src\WebHandler",
-        "src\liminalis",
-        "src\procs",
-        "src\system"
+        "src",
+        "src\main"
     ),
 
     [Parameter()]

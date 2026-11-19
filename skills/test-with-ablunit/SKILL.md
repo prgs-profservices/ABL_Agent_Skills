@@ -123,4 +123,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `runtest.ps1` | `9AAD2D552083A2889EB3D87ED38770A343DF67B31A2BA7B18687B1233B1CD1BC` |
+| `runtest.ps1` | `7269ACBA025D40E6C0EAFBB9C847968CFBEAE763AF74032E169A273E3245AB0A` |

@@ -113,4 +113,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `generate-drop-field-df.ps1` | `F3876DA5DC2580D2D635240D94E02C0C58478DF5EE1D60BE05CC462350B70170` |
+| `generate-drop-field-df.ps1` | `1B6E0CCF4D66591E97EF7B9B56D10C1574D682F590AC98A02F859C800DB27BE9` |

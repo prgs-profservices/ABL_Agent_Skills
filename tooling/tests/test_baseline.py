@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path, PurePosixPath
 import tempfile
 import unittest
@@ -7,6 +8,7 @@ from scripts.validate_baseline import (
     validate_file,
     validate_hooks,
     validate_reference,
+    validate_script_hashes,
     validate_skill,
     validate_skill_code,
     validate_skill_license_files,
@@ -140,6 +142,53 @@ class BaselineTests(unittest.TestCase):
                 validate_skill_license_files(skill, root)
             (skill / "NOTICE.txt").write_text("notice text\n", encoding="utf-8")
             validate_skill_license_files(skill, root)
+
+    def make_skill_with_hash_table(self, root, table_rows):
+        skill = root / "skills" / "test-skill"
+        skill.mkdir(parents=True)
+        table = "\n".join(f"| `{name}` | `{digest}` |" for name, digest in table_rows)
+        (skill / "SKILL.md").write_text(
+            SKILL + f"\n## Script integrity\n\n| File | SHA-256 |\n|---|---|\n{table}\n",
+            encoding="utf-8",
+        )
+        return skill
+
+    def test_script_hashes_matching_table_passes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = self.make_skill_with_hash_table(root, [("run.ps1", "0" * 64)])
+            digest = hashlib.sha256(b"line one\r\nline two\r\n".replace(b"\r\n", b"\n")).hexdigest()
+            (skill / "run.ps1").write_bytes(b"line one\r\nline two\r\n")
+            (skill / "SKILL.md").write_text(
+                (skill / "SKILL.md").read_text(encoding="utf-8").replace("0" * 64, digest),
+                encoding="utf-8",
+            )
+            self.assertEqual(validate_script_hashes(skill), [])
+
+    def test_script_hashes_mismatch_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = self.make_skill_with_hash_table(root, [("run.ps1", "0" * 64)])
+            (skill / "run.ps1").write_bytes(b"content\n")
+            errors = validate_script_hashes(skill)
+            self.assertEqual(len(errors), 1)
+            self.assertIn("does not match", errors[0])
+
+    def test_script_hashes_missing_file_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = self.make_skill_with_hash_table(root, [("run.ps1", "0" * 64)])
+            errors = validate_script_hashes(skill)
+            self.assertEqual(len(errors), 1)
+            self.assertIn("does not exist", errors[0])
+
+    def test_script_hashes_no_section_passes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = root / "skills" / "test-skill"
+            skill.mkdir(parents=True)
+            (skill / "SKILL.md").write_text(SKILL, encoding="utf-8")
+            self.assertEqual(validate_script_hashes(skill), [])
 
     def test_ruleset_enforces_pr_and_security_checks(self):
         ruleset = build_ruleset("Polaris policy", 100, "Black Duck policy", 200)

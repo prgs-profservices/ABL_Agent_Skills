@@ -89,4 +89,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `load-schema.ps1` | `8498B117BA23343D893C385D791B5D338EFF94FE301B26358AACE5A22004499A` |
+| `load-schema.ps1` | `4168E7818F5ECAAA44D5C55699F9323B2F1D8631092A4A220C0B380CEA6B929A` |

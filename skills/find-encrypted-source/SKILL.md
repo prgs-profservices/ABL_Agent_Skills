@@ -183,4 +183,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `scan-encrypted.ps1` | `F4BEA817F44D8D8BC812B3A17993C3EF8C96A00D5577F560D7A92967C718E8F6` |
+| `scan-encrypted.ps1` | `DF11FB14E712E69699D93AF5152FC5065E7A995370FF897A5BF00C961DDD4A1A` |

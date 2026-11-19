@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
@@ -84,6 +85,39 @@ def validate_skill_license_files(directory, root):
             raise ValueError(f"Skills must include {bundled} as an exact copy of the repository {original}")
 
 
+def validate_script_hashes(directory):
+    """Check a SKILL.md 'Script integrity' table against the files on disk.
+
+    Documented hashes are SHA-256 over LF-normalized bytes so they match a
+    plain Get-FileHash on both LF and CRLF checkouts. Returns a list of
+    error strings; an empty list means the table is valid (or absent).
+    """
+    text = (directory / "SKILL.md").read_text(encoding="utf-8")
+    lines = text.splitlines()
+    section = None
+    for index, line in enumerate(lines):
+        if line.startswith("## "):
+            if section is None and line.strip().startswith("## Script integrity"):
+                section = index + 1
+            elif section is not None:
+                break
+    if section is None:
+        return []
+    body = "\n".join(lines[section:])
+    errors = []
+    for filename, documented in re.findall(
+        r"`([^`]+)`\s*\|\s*`([0-9a-fA-F]{64})`", body
+    ):
+        target = directory / filename
+        if not target.is_file():
+            errors.append(f"'{filename}' is listed in the Script integrity table but does not exist")
+            continue
+        actual = hashlib.sha256(target.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        if documented.lower() != actual:
+            errors.append(f"documented SHA-256 for '{filename}' does not match the file")
+    return errors
+
+
 def validate_skill_code(text):
     if LICENSE_MARKER not in text or not COPYRIGHT_LINE.search(re.sub(r"^\W+", "", text, flags=re.MULTILINE)):
         raise ValueError("Code files in skills must start with the official Progress copyright line and the Apache License 2.0 header")
@@ -109,6 +143,9 @@ def validate_file(path, root, skills=frozenset()):
     if path.name == "SKILL.md":
         validate_skill(text, path.parent.name)
         validate_skill_license_files(path.parent, root)
+        hash_errors = validate_script_hashes(path.parent)
+        if hash_errors:
+            raise ValueError("; ".join(hash_errors))
 
 
 def main():

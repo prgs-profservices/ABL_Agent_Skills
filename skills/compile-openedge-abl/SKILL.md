@@ -21,10 +21,10 @@ Use the skill invocation's Base Directory as the directory that contains `compil
 
 Do not use file search to locate `compilefile.ps1`. Skill directories may be junctions, symlinks, or gitignored, and file search tools may skip them. The authoritative location is the Base Directory reported for this skill invocation.
 
-Example command pattern, assuming the skill Base Directory is `C:\apps\MyApp\.devin\skills\compile-openedge-abl`:
+Example command pattern, resolving the script from the skill's reported Base Directory:
 
 ```powershell
-$skillDir = "C:\apps\MyApp\.devin\skills\compile-openedge-abl"
+$skillDir = "<skill-dir>"  # this skill's own folder (compile-openedge-abl)
 $scriptPath = Join-Path $skillDir "compilefile.ps1"
 if (-not (Test-Path $scriptPath)) {
     throw "compilefile.ps1 was not found in the compile-openedge-abl skill Base Directory."
@@ -59,5 +59,5 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `compilefile.p` | `C26475BE56A933AB76498108DA7BC05B1801AE6CF7A74BC740EEAD48517FDEED` |
-| `compilefile.ps1` | `59929B232CF7697F5DAEA36D109C2E81D6436C9EC45859A3E5FD02A65F7AB808` |
+| `compilefile.p` | `27C4CE3A1F58F559B2826C6763329ACF2F3499D3F6B8259975F3203F0B446C78` |
+| `compilefile.ps1` | `CD982524D09A17AE8AF46A0464A7E85D633E7DBF919A2C10619D24813306188C` |
