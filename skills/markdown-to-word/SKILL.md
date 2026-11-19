@@ -143,4 +143,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `convert-md-to-docx.py` | `A0587BD50A3731AEACD983AA5325ED568BCCFD00001EA0BCD3DA127F7E03CC6B` |
+| `convert-md-to-docx.py` | `914D5F19CB211CBC9BF7D33A0108CBA2B79C1FEC3494F7EC0D36AF6155A9A5E3` |

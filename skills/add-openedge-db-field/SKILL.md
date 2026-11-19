@@ -212,4 +212,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `generate-field-df.ps1` | `A21297E36F3F9381DA49C8076F7C3AAE870A58C5BCB0C39CFE49179E3AD55EDC` |
+| `generate-field-df.ps1` | `49BA4A31F3ACA27DE7B2AE69BA75022CDFD9441C16C9CE8E1E4CA7B85B114775` |

@@ -44,7 +44,7 @@ Columns:
 1. Find the most recent `.out` file under `.profile/` if the user does not specify one.
 2. Run the script with `-OutputJson` and `-ProjectRoot` set to the workspace root.
    The script path is always `analyze-profile.ps1` inside the skill's **Base Directory**
-   (shown when the skill loads, e.g. `C:/apps/MyApp/.devin/skills/analyze-oe-profile`).
+   (`<skill-dir>` — the folder shown when the skill loads).
    Use that absolute path - do NOT hardcode `.github/skills/...` since different agents
    mount skills under different folders (`.devin/skills`, `.github/skills`, etc.).
 
@@ -119,4 +119,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `analyze-profile.ps1` | `E4A6E85F8D577AD7CF631849BEEED60760E2A60B56DE3838C730CEF1B6AA8685` |
+| `analyze-profile.ps1` | `87C1F43E8A9E4208207795EB13A8948E5CB0ED3FDDA485B2350B315E00068F9D` |

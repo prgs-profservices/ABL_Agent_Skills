@@ -483,4 +483,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `purge-junk-files.ps1` | `5242FE08FC9F5B544A9904F43263FE44951F452281A642BE2EDCC8738A415C92` |
+| `purge-junk-files.ps1` | `26B6C3C035D31DFA24CD3B2DC5F2B9934B3A3DCBDA2E90B3E1842DB78FB42BFF` |

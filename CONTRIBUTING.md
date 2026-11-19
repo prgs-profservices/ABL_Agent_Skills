@@ -70,6 +70,13 @@ The validator enforces these rules on every PR:
 Keep helper files to what the skill needs. Do not include secrets, credentials,
 internal URLs, customer data, or instructions that hide what the skill does.
 
+If a skill bundles executable helper files, document each file's SHA-256 hash
+in a **Script integrity** table at the end of `SKILL.md` (see an existing
+skill for the format). Hashes are computed over LF-normalized bytes; content
+validation enforces the table on every PR, so keep it current. Regenerate the
+hashes with the command shown in
+[skills/README.md](skills/README.md#script-integrity-hashes).
+
 ## Development Setup
 
 Use Python 3.13 and Git:

@@ -18,7 +18,8 @@
 
 .PARAMETER ProductionPaths
     Directories that contain functional/production ABL source.  Defaults to
-    common ABL source folders; override for your project layout.
+    src and src\main; override for your project layout. Files that fall under
+    TestPaths, OperationalPaths or GeneratedPaths are never counted here.
 
 .PARAMETER TestPaths
     Directories that contain ABLUnit test source.  Defaults to src\test.
@@ -47,10 +48,8 @@ param(
 
     [Parameter()]
     [string[]]$ProductionPaths = @(
-        "src\WebHandler",
-        "src\liminalis",
-        "src\procs",
-        "src\system"
+        "src",
+        "src\main"
     ),
 
     [Parameter()]
@@ -174,10 +173,12 @@ function Measure-Category {
         [string]$Name,
         [string]$Root,
         [string[]]$Paths,
-        [string[]]$Extensions
+        [string[]]$Extensions,
+        [hashtable]$ExcludeFiles = @{}
     )
 
-    $files = Get-CategoryFiles -Root $Root -Paths $Paths -Extensions $Extensions
+    $files = Get-CategoryFiles -Root $Root -Paths $Paths -Extensions $Extensions |
+        Where-Object { -not $ExcludeFiles.ContainsKey($_.FullName) }
     $metrics = foreach ($file in $files) { Measure-AblFile -File $file -Root $Root }
 
     return [PSCustomObject]@{
@@ -232,7 +233,12 @@ if (-not $root) {
     throw "Project root not found: $ProjectRoot"
 }
 
-$production  = Measure-Category -Name 'Production'  -Root $root -Paths $ProductionPaths  -Extensions $SourceExtensions
+# Production excludes anything that belongs to the other categories, so a
+# broad ProductionPaths default like "src" never double-counts them.
+$nonProduction = @{}
+Get-CategoryFiles -Root $root -Paths ($TestPaths + $OperationalPaths + $GeneratedPaths) -Extensions $SourceExtensions |
+    ForEach-Object { $nonProduction[$_.FullName] = $true }
+$production  = Measure-Category -Name 'Production'  -Root $root -Paths $ProductionPaths  -Extensions $SourceExtensions -ExcludeFiles $nonProduction
 $test        = Measure-Category -Name 'Test'        -Root $root -Paths $TestPaths        -Extensions $SourceExtensions
 $operational = Measure-Category -Name 'Operational' -Root $root -Paths $OperationalPaths -Extensions $SourceExtensions
 $generated   = Measure-Category -Name 'Generated'   -Root $root -Paths $GeneratedPaths   -Extensions @('.r')

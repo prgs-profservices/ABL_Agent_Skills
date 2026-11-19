@@ -49,8 +49,17 @@ Many skills reference each other by name (e.g. `get-project-dlc`, `determine-oe-
 
 Every skill that bundles an executable script documents its SHA-256 hash in a **Script integrity** section at the end of its SKILL.md. Agents and reviewers should verify hashes before first execution (`Get-FileHash <file> -Algorithm SHA256`) and stop on mismatch.
 
-When a bundled script changes, regenerate its hash and update the table in the skill's SKILL.md:
+Hashes are computed over **LF-normalized bytes** (the repo pins `skills/**` to `eol=lf` via `.gitattributes`), so a plain `Get-FileHash` matches on both LF checkouts (Linux/macOS, `npx skills`) and CRLF worktrees (`core.autocrlf=true`). CI content validation enforces the tables and fails the build on any mismatch or missing file.
+
+When a bundled script changes, regenerate its hash and update the table in the skill's SKILL.md. The command below must run on an **LF checkout**; on a CRLF worktree compute the hash over LF-normalized bytes instead:
 
 ```powershell
+# LF checkout (Linux/macOS, or core.autocrlf=false):
 Get-ChildItem <skill-dir> -Include *.ps1,*.cmd,*.py,*.p -File | Get-FileHash -Algorithm SHA256
+
+# CRLF worktree: normalize line endings before hashing
+Get-ChildItem <skill-dir> -Include *.ps1,*.cmd,*.py,*.p -File | ForEach-Object {
+    $bytes = [Text.Encoding]::UTF8.GetBytes(([IO.File]::ReadAllText($_.FullName) -replace "`r`n", "`n"))
+    [PSCustomObject]@{ File = $_.Name; Hash = (Get-FileHash -Algorithm SHA256 -InputStream ([IO.MemoryStream]::new($bytes))).Hash }
+}
 ```

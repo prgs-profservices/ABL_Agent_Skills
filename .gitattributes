@@ -1,0 +1,4 @@
+# Keep LF line endings under skills/ so documented SHA-256 hashes match on every platform.
+skills/** text eol=lf
+# ...but never treat binary assets as text.
+*.png binary
