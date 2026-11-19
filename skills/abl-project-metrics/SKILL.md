@@ -65,7 +65,7 @@ powershell.exe -NoProfile -File $scriptPath `
 | Parameter | Default | Notes |
 |-----------|---------|-------|
 | `ProjectRoot` | `.` | Project root to measure. |
-| `ProductionPaths` | `src`, `src\main` | Default ABL source folders; override for your project layout. |
+| `ProductionPaths` | `src`, `src\main` | Default ABL source folders; override for your project layout. Files under the other categories' paths are excluded, so nothing is counted twice. |
 | `TestPaths` | `src\test` | Folders containing ABLUnit tests. |
 | `OperationalPaths` | `scripts` | One-off operational `.p` scripts. |
 | `GeneratedPaths` | `build\rcode`, `rcode` | Generated `.r` code directories. |
@@ -92,4 +92,4 @@ Verify the bundled script(s) before first use: `Get-FileHash <file> -Algorithm S
 
 | File | SHA-256 |
 |---|---|
-| `Measure-Project.ps1` | `B64ECDADF25A980E3F3B44940BF5871480F3817D2AA63A8BFDCB098B31BB4E32` |
+| `Measure-Project.ps1` | `45B9937CAC446C812140904F763014A8D2738E0731DEFEAF94FEE4628FCC5DF9` |

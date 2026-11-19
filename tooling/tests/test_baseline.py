@@ -182,6 +182,15 @@ class BaselineTests(unittest.TestCase):
             self.assertEqual(len(errors), 1)
             self.assertIn("does not exist", errors[0])
 
+    def test_script_hashes_malformed_digest_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = self.make_skill_with_hash_table(root, [("run.ps1", "abc123")])
+            (skill / "run.ps1").write_bytes(b"content\n")
+            errors = validate_script_hashes(skill)
+            self.assertEqual(len(errors), 1)
+            self.assertIn("not a 64-character SHA-256", errors[0])
+
     def test_script_hashes_no_section_passes(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

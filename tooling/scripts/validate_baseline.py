@@ -106,8 +106,11 @@ def validate_script_hashes(directory):
     body = "\n".join(lines[section:])
     errors = []
     for filename, documented in re.findall(
-        r"`([^`]+)`\s*\|\s*`([0-9a-fA-F]{64})`", body
+        r"`([^`]+)`\s*\|\s*`([^`]+)`", body
     ):
+        if not re.fullmatch(r"[0-9a-fA-F]{64}", documented):
+            errors.append(f"documented hash for '{filename}' is not a 64-character SHA-256 value")
+            continue
         target = directory / filename
         if not target.is_file():
             errors.append(f"'{filename}' is listed in the Script integrity table but does not exist")
